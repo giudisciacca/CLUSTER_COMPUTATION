@@ -1,0 +1,25 @@
+ qsub launch_inCluster_opt1b.sh 
+ qsub launch_inCluster_opt4b.sh 
+ qsub launch_inCluster_opt6b.sh 
+ qsub launch_inCluster_opt16cylb.sh 
+ qsub launch_inCluster_opt2b.sh 
+ qsub launch_inCluster_opt17cylb.sh 
+ qsub launch_inCluster_opt3b.sh
+ qsub launch_inCluster_opt5b.sh
+ qsub launch_inCluster_opt7b.sh
+ qsub launch_inCluster_opt8b.sh
+ qsub launch_inCluster_opt9b.sh
+ qsub launch_inCluster_opt10b.sh
+ qsub launch_inCluster_opt11b.sh
+ qsub launch_inCluster_opt18cylb.sh
+ qsub launch_inCluster_opt19cylb.sh 
+# qsub launch_inCluster_opt12.sh
+# qsub launch_inCluster_opt13.sh
+# qsub launch_inCluster_opt14.sh
+# qsub launch_inCluster_opt15.sh
+# qsub launch_inCluster_opt16cyl.sh
+# qsub launch_inCluster_opt17cyl.sh
+# qsub launch_inCluster_opt18cyl.sh
+# qsub launch_inCluster_opt19cyl.sh
+ 
+

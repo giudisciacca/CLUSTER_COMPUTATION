@@ -1,0 +1,7 @@
+python DeepPrior_OpticalLoss_iterVictre.py 'OpticalLoss_iter1_full_withEXP_frmw1b' 1 1 'VICTRE_PARADIGM' 1 'USadded'  ; 
+python DeepPrior_OpticalLoss_iterVictre.py 'OpticalLoss_iter1_slice_withEXP_frmw1b' 0 1 'VICTRE_PARADIGM' 1 'USadded'  ;
+python DeepPrior_OpticalLoss_iterVictre.py 'OpticalLoss_iter1_optic_withEXP_frmw1b' 1 0 'VICTRE_PARADIGM' 1 'USadded' ;  
+python DeepPrior_OpticalLoss_iterVictre.py 'OpticalLoss_iter1_full_withEXP_frmw3b' 1 1 'VICTRE_PARADIGM' 1 'USonly'  ; 
+python DeepPrior_OpticalLoss_iterVictre.py 'OpticalLoss_iter1_slice_withEXP_frmw3b' 0 1 'VICTRE_PARADIGM' 1 'USonly' ;
+
+
