@@ -1,0 +1,70 @@
+%==========================================================================
+%%  SETTING SOURCES (QVEC), DETECTORS (MVEC) AND THEIR PERMUTATIONS (DMASK)
+%==========================================================================
+% SOLUS SOURCES - DETECTOR POSITIONS
+ys = [17.5 -17.5];
+xs = [19.5000    6.5   -6.5  -19.5000];
+%ys = linspace(5,50,8);
+zs = 0;
+
+yd = [10.8 -10.8];
+xd = [19.5000    6.5   -6.5  -19.5000];
+%ys = linspace(5,50,8);
+zd = 0;
+
+[xxs,yys,zzs] = ndgrid(xs,ys,zs);
+[xxd,yyd,zzd] = ndgrid(xd,yd,zd);
+
+DOT.Source.Pos = [xxs(:),yys(:),zzs(:)];
+DOT.Detector.Pos = [xxd(:),yyd(:),zzd(:)];
+DOT.Source.Area = 0.5;
+DOT.Detector.Area = 1;
+
+
+% non-contact PTB setup 40x40 mm2 scan with 8x8 and s-d 5mm
+% rhozero
+% rhosd = 5;
+% % 8x8
+% % DOT.Source.Pos = RasterScan(-20-rhosd/2,20-rhosd/2,-20,20,8,8,0);
+% % DOT.Detector.Pos = RasterScan(-20+rhosd/2,20+rhosd/2,-20,20,8,8,0);
+% % 16x16
+% DOT.Source.Pos = RasterScan(-20-rhosd/2,20-rhosd/2,-20,20,16,16,0);
+% DOT.Detector.Pos = RasterScan(-20+rhosd/2,20+rhosd/2,-20,20,16,16,0);
+
+DOT.Source.Ns=size(DOT.Source.Pos,1);
+DOT.Detector.Nd=size(DOT.Detector.Pos,1);
+%% Define permutation matrix
+% ALL COMBINATIONS: null-distances + all the other combinations
+%DOT.dmask = logical(ones(DOT.Detector.Nd,DOT.Source.Ns));
+
+% NULL-DISTANCE ONLY
+%DOT.dmask = logical(eye(DOT.Detector.Nd,DOT.Source.Ns));
+
+% ALL EXCEPT NULL-DISTANCE
+DOT.dmask = logical(ones(DOT.Detector.Nd,DOT.Source.Ns) - ...
+    diag(diag(ones(DOT.Detector.Nd,DOT.Source.Ns)))); 
+
+
+
+distmat = round(sqrt((DOT.Source.Pos(:,1) - DOT.Detector.Pos(:,1)').^(2) +...
+    (DOT.Source.Pos(:,2) - DOT.Detector.Pos(:,2)').^(2)+...
+    (DOT.Source.Pos(:,3) - DOT.Detector.Pos(:,3)').^(2)),1);
+distmat = repmat(distmat,[1,1,8]);
+DOT.dmask = distmat>27;
+% Low diagonal
+% DOT.dmask = logical(ones(DOT.Detector.Nd,DOT.Source.Ns)- ...
+%      triu(ones(DOT.Detector.Nd,DOT.Source.Ns)));
+
+% -------------------------------------------------------------------------
+if EXP_DATA
+   load(['EXP_' exp_file])
+   DOT.dmask = logical(EXP.grid.dmask);
+   xs = EXP.grid.xs;
+   ys = EXP.grid.ys;
+   zs = EXP.grid.zs;
+   [xxs,yys,zzs] = ndgrid(xs,ys,zs);
+   DOT.Source.Pos = [xxs(:),yys(:),zzs(:)];
+   DOT.Detector.Pos = [xxs(:),yys(:),zzs(:)];
+   DOT.Source.Ns=size(DOT.Source.Pos,1);
+   DOT.Detector.Nd=size(DOT.Detector.Pos,1);
+end
