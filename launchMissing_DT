@@ -1,0 +1,13 @@
+#for missingNum in {174..216..1}
+#for missingNum in {1..173..1}
+for missingNum in {1..724..1}
+	do
+	#export OUTPUT=$(cat $HOME/fullSOLUS_victre.sh.o4123408.$missingNum |grep mua_IN | wc -l)
+	#export OUTPUT=$(cat $HOME/fullSOLUS_victre.sh.o4052872.$missingNum |grep mua_IN | wc -l)
+	#export OUTPUT=$(cat $HOME/fullSOLUS_victre.sh.o4131314.$missingNum |grep mua_IN | wc -l)
+	export OUTPUT=$(ls $HOME/SOLUS/example/VICTRE_PARADIGM/Test_StandardPARADIGM7__typetk0_tau1e-02_mu0MeanFittedSample$[missingNum]_REC.ma* | wc -l)
+
+	if [ "$OUTPUT" != "1" ]; 
+		then  echo $missingNum; qsub SOLUS/SOLUS_multilaunch_victre_redo.sh $missingNum
+	fi
+done

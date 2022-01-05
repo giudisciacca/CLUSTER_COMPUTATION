@@ -1,0 +1,11 @@
+#export OUTPUT=$(date -r scripts_victre/US_VICTRE_PARADIGM/TEST_VICTRE_PARADIGM_75VICTRE.mat +%m)
+
+for missingNum in {1..700..1}
+do
+export OUTPUT=$(ls SOLUS/example/VICTRE_PARADIGM/*DT*$missingNum*REC* | wc -l)
+#echo $OUTPUT
+#export OUTPUT=$(date -r scripts_victre/US_VICTRE_PARADIGM/TEST_VICTRE_PARADIGM_"$missingNum"VICTRE.mat +%m)
+if [ "$OUTPUT" == "0" ]; 
+then  echo $missingNum; 
+fi
+done
