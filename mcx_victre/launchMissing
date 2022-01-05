@@ -1,0 +1,38 @@
+#!bin/sh
+echo sleeping...
+
+echo awake
+nn=0
+export str=""
+FLAGfirst="init"
+FLAGok="init"
+echo $FLAGfirst
+for missingNum in {1..2..1}
+	do
+	for missingL in {1..8..1}
+		do
+		for missingQ in {1..2..1}
+			do
+			nn=$(($nn+1))
+			#echo $nn
+			echo $missingL
+			ls "Test_Standard_MC_$missingNum_l$missingL_q$missingQ.mat"
+			export OUTPUT=$(ls "Test_Standard_MC_${missingNum}_l${missingL}_q${missingQ}.mat" | wc -l)
+			if [ "$OUTPUT" == "0" ]; 
+				then  
+				#echo $missingNum;echo $missingL;echo $missingQ 
+				export str="$nn:$nn"
+				echo $str
+				cp mcx_victre_sepMis.sh mcx_victre_sepMisOK.sh
+				sed -i 's/to_fill/'${str}'/' mcx_victre_sepMisOK.sh
+				echo $str
+				qsub mcx_victre_sepMisOK.sh
+
+			fi
+
+			done
+		done
+	done
+cp mcx_victre_sepMis.sh mcx_victre_sepMisOK.sh
+sed -i 's/to_fill/'${str}'/' mcx_victre_sepMisOK.sh
+echo $str
