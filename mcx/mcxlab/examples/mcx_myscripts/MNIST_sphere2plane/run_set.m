@@ -1,0 +1,4 @@
+MNIST_reflection;
+MNIST_reflection_1src;
+BLOBS_reflection;
+BLOBS_reflection_1src;
