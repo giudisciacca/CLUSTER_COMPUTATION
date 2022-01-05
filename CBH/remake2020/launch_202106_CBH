@@ -1,0 +1,6 @@
+python DiffNet_PMInv_original.py  NonInterpretable9 0.1e-4;
+python Unet_PMInv_original.py;
+python DiffNet_PMInv_control.py Control 0.1e-4;
+python DiffNet_PMInv_original.py  Linear 0.5e-4;
+python DiffNet_PMInv_retrieveKappa.py;  
+

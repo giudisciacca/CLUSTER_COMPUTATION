@@ -1,0 +1,37 @@
+python DiffNet_PMInv_original.py  Linear 0.5e-4 phantom1_5mm_1FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 phantom1_5mm_1FT_phantom2_5mm_1FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 phantom1_5mm_2FT__moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz1_phantom1_5mm_2FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz2_phantom1_5mm_2FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz3_phantom1_5mm_2FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz4_phantom1_5mm_2FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz5_phantom1_5mm_2FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz6_phantom1_5mm_2FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz1_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz2_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz3_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz4_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz5_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz6_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea;
+
+python DiffNet_PMInv_original.py  Linear 0.5e-4 phantom1_5mm_1FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 phantom1_5mm_1FT_phantom2_5mm_1FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 phantom1_5mm_2FT__moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz1_phantom1_5mm_2FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz2_phantom1_5mm_2FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz3_phantom1_5mm_2FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz4_phantom1_5mm_2FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz5_phantom1_5mm_2FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz6_phantom1_5mm_2FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz1_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz2_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz3_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz4_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normPeaK;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz5_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normPeak;
+python DiffNet_PMInv_original.py  Linear 0.5e-4 siz6_phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normPeak;
+
+
+  
+
