@@ -55,12 +55,12 @@ wchan = int(32);
 spformat = 'csr'
 global_behav = 'fromSingle';
 
-sys.argv.append('full_1iter_dbg')
-sys.argv.append(0)
-sys.argv.append(1)
-sys.argv.append('BORNsvdLarge2USonly')
+#sys.argv.append('full_1iter_dbg')
+#sys.argv.append(0)
+#sys.argv.append(1)
+#sys.argv.append('BORNsvdLarge2USonly')
 #sys.argv.append('fromSingle')
-sys.argv.append(1)
+#sys.argv.append(1)
 
 
 #global_behav = sys.argv[5];
@@ -652,7 +652,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             train_step = tf.train.AdamOptimizer(learningRate).minimize(rel_loss)
 
     sess.run(tf.global_variables_initializer())
-    lVal = 1e-5
+    lVal = np.single(sys.argv[7]);#1e-5
     ''''
     feed_test = {recona: dataDbar[0].test.recona[0:bSize],
                  recons: dataDbar[0].test.recons[0:bSize],
@@ -802,7 +802,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
                 if (mean_val_loss < champion_loss_val):
                     champion_loss_val = np.nanmean(np.array(loss_val));
                     print('NEW CHAMPION, SAVING ...')
-                    saved_path = saver.save(sess, MatOutName[0][0:-4] + 'best_binaryInput')
+                    saved_path = saver.save(sess, MatOutName[0][0:-4].replace('/home','/scratch0') + 'best_binaryInput')
     saver.restore(sess, saved_path);
     for i_dataset in range(0, len(dataDbar)):
         resulta = [None] * (np.shape(dataDbar[i_dataset].test.recona)[0])
@@ -874,7 +874,7 @@ for j_proc in range(0, len(specName_train)):
         dataSetTest[i_logname] = commonName_test + specName_test[j_proc][i_logname] + '_t.mat';
         logName[i_logname] = logNameCommon + '_train_' + specName_train[j_proc] + '_test_' + specName_test[j_proc][
             i_logname];
-        savematName[i_logname] = util.default_tensorboard_dir('') +'Matlab'+ logNameCommon +'_train_' + specName_train[j_proc] + '_test_' + specName_test[j_proc][i_logname] + '.mat';
+        savematName[i_logname] = util.default_tensorboard_dir('') +'Matlab'+ logNameCommon +'_train_' + specName_train[j_proc] + '_test_' + specName_test[j_proc][i_logname] +'lr'+str(sys.argv[7])+ '.mat';
     print(logName)
     # Lout,output =main(netPath,logName,dataSetTrain,dataSetTest, train_num[j_proc], savematName)
     p = multiprocessing.Process(target=main,

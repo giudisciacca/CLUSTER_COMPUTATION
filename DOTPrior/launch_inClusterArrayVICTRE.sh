@@ -5,6 +5,7 @@
 #$ -j y
 #$ -N pyArray
 #$ -l gpu=true
+#$ -l tscratch=10G
 #$ -t 1:50
 #####  -pe gpu 1
 
@@ -17,6 +18,8 @@ export LD_LIBRARY_PATH=/share/apps/cuda-10.0/lib64:/usr/local/cuda-10.0/lib:/lib
 export LD_LIBRARY_PATH="/share/apps/python-3.7.2-shared/lib/:$LD_LIBRARY_PATH"
 export PATH="$PATH:/share/apps/python-3.7.2-shared/bin/"
 export VENV_FOLDER="/home/gdisciac/Python72Venv10"
+
+mkdir /scratch0/gdisciac/
 
 cd /home/gdisciac/DOTPrior/
 #python3 -m venv $VENV_FOLDER
@@ -34,7 +37,7 @@ DEL_VAR_METHOD=${DEL_VAR_TOT[2]}
 DEL_VAR_METHOD=$(echo $DEL_VAR_METHOD | tr -d \')
 DEL_VAR_DATA=${DEL_VAR_TOT[5]}${DEL_VAR_TOT[7]} 
 DEL_VAR_DATA=$(echo $DEL_VAR_DATA | tr -d \')
-ASSEMBLED=/home/gdisciac/DOTPrior/tensorboard_prior/$DEL_VAR_DATA/$DEL_VAR_METHOD/*best_binaryInput*
+ASSEMBLED=/scratch0/gdisciac/DOTPrior/tensorboard_prior/$DEL_VAR_DATA/$DEL_VAR_METHOD/*best_binaryInput*
 rm $ASSEMBLED
 
 
