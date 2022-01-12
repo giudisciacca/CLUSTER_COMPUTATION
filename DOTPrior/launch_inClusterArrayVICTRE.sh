@@ -5,7 +5,7 @@
 #$ -j y
 #$ -N pyArray
 #$ -l gpu=true
-#$ -t 1,4
+#$ -t 1:50
 #####  -pe gpu 1
 
 # qrsh -l tmem=16G,gpu=true,h_rt=0:30:0 -pe gpu 2
@@ -26,7 +26,7 @@ source $VENV_FOLDER/bin/activate
 
 #export TF_FOLDER=/scratch0/gdisciac/tensorboard_prior/
 #mkdir $TF_FOLDER
-cmd=$(sed -n ${SGE_TASK_ID}'{p;q}' array_of_python_victre.txt)
+cmd=$(sed -n ${SGE_TASK_ID}'{p;q}' array_of_python_victre_multilearning.txt)
 echo $cmd | bash
 
 DEL_VAR_TOT=($cmd)
