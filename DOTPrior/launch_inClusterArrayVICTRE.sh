@@ -19,7 +19,6 @@ export LD_LIBRARY_PATH="/share/apps/python-3.7.2-shared/lib/:$LD_LIBRARY_PATH"
 export PATH="$PATH:/share/apps/python-3.7.2-shared/bin/"
 export VENV_FOLDER="/home/gdisciac/Python72Venv10"
 
-mkdir /scratch0/gdisciac/
 
 cd /home/gdisciac/DOTPrior/
 #python3 -m venv $VENV_FOLDER
@@ -38,6 +37,10 @@ DEL_VAR_METHOD=$(echo $DEL_VAR_METHOD | tr -d \')
 DEL_VAR_DATA=${DEL_VAR_TOT[5]}${DEL_VAR_TOT[7]} 
 DEL_VAR_DATA=$(echo $DEL_VAR_DATA | tr -d \')
 ASSEMBLED=/scratch0/gdisciac/DOTPrior/tensorboard_prior/$DEL_VAR_DATA/$DEL_VAR_METHOD/*best_binaryInput*
+
+mkdir -p /scratch0/gdisciac/DOTPrior/tensorboard_prior/$DEL_VAR_DATA/$DEL_VAR_METHOD/
+echo $cmd | bash
+
 rm $ASSEMBLED
 
 
