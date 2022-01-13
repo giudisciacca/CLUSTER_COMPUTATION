@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l tmem=300M
+#$ -l tmem=400M
 #$ -l h_vmem=20G
 #$ -l h_rt=5:00:00
 #$ -S /bin/bash

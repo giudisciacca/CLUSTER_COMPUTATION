@@ -4,10 +4,10 @@
 #$ -l h_rt=50:00:00
 #$ -S /bin/bash
 #$ -j y
-#$ -N TK0_victre.sh
+#$ -N fit_victre.sh
 #$ -l gpu=true#,gpu_rtx2080ti=yes
 ##$ -l tscratch=20G
-#$ -t 264:730#-8#730#95-99 #282#255,277#246,253#,255,277,282
+#$ -t 480:730#-8#730#95-99 #282#255,277#246,253#,255,277,282
 
 #### qrsh -l tmem=14G,gpu=true,h_rt=0:30:0
 
