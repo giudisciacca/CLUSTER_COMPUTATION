@@ -414,7 +414,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
                     error_val_old = error_val
                     print('NEW CHAMPION SAVING+%f'%error_val)
                     # print(np.shape(dataDbar[0].test.images)[0])
-                    saved_path = saver.save(sess, MatOutName[0][0:-4] + 'best_binaryInput')
+                    saved_path = saver.save(sess, MatOutName[0][0:-4].replace('/home','/scratch0')  + 'best_binaryInput')
 
                     #print(np.shape(dataDbar[0].test.images)[0])
     saver.restore(sess, saved_path);

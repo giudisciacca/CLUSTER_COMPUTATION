@@ -601,7 +601,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
                 if error_val < error_val_old:
                     error_val_old = error_val
                     print('NEW CHAMPION SAVING+%f'%error_val)
-                    saved_path = saver.save(sess, MatOutName[0][0:-4] + 'best_binaryInput')
+                    saved_path = saver.save(sess, MatOutName[0][0:-4].replace('/home','/scratch0') + 'best_binaryInput')
 
 
     saver.restore(sess, saved_path);
