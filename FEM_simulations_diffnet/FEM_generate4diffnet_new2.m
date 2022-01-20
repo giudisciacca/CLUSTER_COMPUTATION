@@ -34,7 +34,7 @@ v_sam = 1200;
 totsam = 1200;
 
 meshfact = 1;
-lavg_sca = [0.5,1,2];%,4];
+lavg_sca = [0.25,0.5,1,2];%,4];
 lavg_var = [0,0.20,0.50,0.80];
 %% decide sim param
 

@@ -1,11 +1,11 @@
 #!/bin/bash
-#$ -l tmem=10G
-#$ -l h_vmem=20G
+#$ -l tmem=30G
+#$ -l h_vmem=30G
 #$ -l h_rt=36:00:00
 #$ -S /bin/bash
 #$ -j y
 #$ -N FEMSIM.sh
-#$ -t 1:12
+#$ -t 1:16
 #=========MATLAB===============
 export PATH="/share/apps/matlabR2016b/bin/:share/apps/gcc-8.3/bin:$PATH"
 #export PATH="/home/gdisciac/mcx/bin:$PATH"
@@ -22,9 +22,10 @@ export TOASTDIR="/share/apps/toast-2.0.2"
 
 cd /home/gdisciac/FEM_simulations_diffnet/
 echo $PATH
-export cmd="matlab -nodesktop -nodisplay -nosplash -nojvm -r cd /home/gdisciac/SOLUS/;DOT_install;set_dir;cd /home/gdisciac/FEM_simulations_diffnet/;Ilaunch="$SGE_TASK_ID";run('/home/gdisciac/FEM_simulations_diffnet/FEM_generate4diffnet_new2.m');exit;"
+##export cmd="matlab -nodesktop -nodisplay -nosplash -nojvm -r cd /home/gdisciac/SOLUS/;DOT_install;set_dir;cd /home/gdisciac/FEM_simulations_diffnet/;Ilaunch="$SGE_TASK_ID";run('/home/gdisciac/FEM_simulations_diffnet/FEM_generate4diffnet_new2.m');exit;"
 echo Starting matlab
-$cmd 
+##$cmd 
+matlab -nodesktop -nodisplay -nosplash -nojvm -r "cd /home/gdisciac/SOLUS/;DOT_install;set_dir;cd /home/gdisciac/FEM_simulations_diffnet/;Ilaunch="$SGE_TASK_ID";run('/home/gdisciac/FEM_simulations_diffnet/FEM_generate4diffnet_new2.m');exit;"
 
 
 echo end-script
