@@ -17,7 +17,7 @@ import numpy as np
 import utilTemp_nonlinInv_mult as util
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0';
+#os.environ['CUDA_VISIBLE_DEVICES'] = '0';
 import scipy.io as sio  # %ok- 1
 from random import randint
 # from numba import cuda

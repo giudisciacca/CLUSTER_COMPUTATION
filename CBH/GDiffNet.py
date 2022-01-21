@@ -12,11 +12,7 @@ import tensorflow as tf
 import sys
 
 sys.path.append("../")
-FORWARD = 1;
-if FORWARD ==1:
-    import Load_DiffNet_Forw as loadDiff
-else:
-    import Load_DiffNet_Inv as loadDiff
+import Load_DiffNet_Inv as loadDiff
 import numpy as np
 import utilTemp_nonlinInv_mult as util
 import os
@@ -35,11 +31,10 @@ print('resuming')
 
 FLAGS = None
 
-FORWARD = 1;
 name = os.path.splitext(os.path.basename(__file__))[0]
 
 name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/202106_CBH/DiffNet/Interpretable9/';
-name = '/home/gdisciac/202106_CBH_res/DiffNet/'+'FORWARDGeneral/'+sys.argv[1]+'/';
+name = '/home/gdisciac/202106_CBH_res/DiffNet/'+'/Interpretable9mua/'+sys.argv[1]+'/';
 #name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/first_session/DiffNet/Interpretable9mua/';
 bSize = int(1)
 chan = int(1)
@@ -307,25 +302,31 @@ def diffLayer(x_in, bSize, N, layNum):
         Kappa.append(kappa[:, :, :, 0:out_chan]);
 
 
-    x_update = x_update + tf.multiply(tf.reshape(kappa[:,:,:,-1],[bSize,N,N,1]),x_update)-assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan-3], dt,   order_step, str_Knature=Knature)-assembleVelocityUpdate(x_update, kappa[:,:,:,out_chan-3:out_chan-1], dt)
+    x_update = x_update + tf.multiply(tf.reshape(kappa[:,:,:,-1],[bSize,N,N,1]),x_update) - assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan-3], dt,
+                                            order_step, str_Knature=Knature)- assembleVelocityUpdate(x_update[out_chan-3:out_chan-1], kappa, dt)
     x_out = tf.reshape(x_update, [bSize, N, N, 1])
 
     for xi in range(chan - 1):
         x_update = x_full[:, :, :, xi + 1]
         x_update = tf.reshape(x_update, [bSize, N, N, 1])
         # update for all channels with same kappa found before
-        x_update = x_update - tf.multiply(tf.reshape(kappa[:, :, :, -1], [bSize, N, N, 1]), x_update)+assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan - 3], dt,order_step,str_Knature=Knature)+assembleVelocityUpdate(x_update[out_chan - 3:out_chan - 1], kappa, dt)
+        x_update = x_update + tf.multiply(tf.reshape(kappa[:, :, :, -1], [bSize, N, N, 1]), x_update) -
+                    assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan - 3], dt,order_step,str_Knature=Knature) -
         x_out = tf.concat([x_out, x_update], axis=3)
 
     return x_out, kappa, Kappa
 
 def assembleVelocityUpdate(x_update, kappa, dt):
     x_out = tf.zeros_like(x_update);
-
-    multK = [None]*2
-    multK[0] = tf.reshape(kappa[:,:,:,0],[bSize,N,N,1]);
-    multK[1] = tf.reshape(kappa[:,:,:,1],[bSize,N,N,1]);
-    x_out = tf.multiply(multK[0], shiftX(0.5*x_update, 1, 0)-0.5*shiftX(x_update, -1, 0))+tf.multiply(multK[1], 0.5*shiftX(x_update, 0, 1)-0.5*shiftX(x_update,  0,-1));
+    count_k = 0;
+    if str_Knature=='tensorial':
+        multK = [None]*2
+        multK[0] = kappa[:,:,:,0];
+        multK[1] = kappa[:,:,:,1];
+        dx_ =
+        dy_ =
+        x_out = tf.multiply(mult[0], shiftX(x_update, 2, 0)+shiftX(x_update, -2, 0)-x_updata)+
+                tf.multiply(mult[1], shiftX(x_update, 0, 2)+shiftX(x_update,  0,-2)-x_update);
 
     x_out_mult = tf.multiply(dt, x_out);
     return x_out_mult
@@ -368,7 +369,7 @@ def assembleXupdate2D(x_update, kappa, dt, order, str_Knature='tensorial'):
                                         tf.multiply(tf.reshape(kappa[:, :, :, count_k], [bSize, N, N, 1]),
                                                     shiftX(x_update, i, j)));
 
-    x_out_mult = tf.multiply(dt, x_out);
+    x_out_mult = tf.multiply(dt, tf.sum(x_out, tf.multiply(kappa[:,:,:,4],x_update ) );#absorption term
     if order == 1:
         return x_out_mult
     else:
@@ -417,15 +418,10 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         iii = 0;
         for iii in range(iterMain):
             x_update, kappaEst1, Kappa1 = diffLayer(x_update, bSize, N, 0 + 100 * iii)
-            Lay1 = tf.identity(x_update);
             x_update, kappaEst2, Kappa2 = diffLayer(x_update, bSize, N, 1 + 100 * iii)
-            Lay2 = tf.identity(x_update);
             x_update, kappaEst3, Kappa3 = diffLayer(x_update, bSize, N, 2 + 100 * iii)
-            Lay3 = tf.identity(x_update);
             x_update, kappaEst4, Kappa4 = diffLayer(x_update, bSize, N, 3 + 100 * iii)
-            Lay4 = tf.identity(x_update);
             x_update, kappaEst5, Kappa5 = diffLayer(x_update, bSize, N, 4 + 100 * iii)
-            Lay5 = tf.identity(x_update);
 
         x_update = tf.reshape(x_update, [bSize, N, N, chan])
         x_sum = x_update[:, :, :, 0]
@@ -551,18 +547,13 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         outK3 = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
         outK4 = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
         outK5 = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
-        outL1 = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
-        outL2 = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
-        outL3 = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
-        outL4 = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
-        outL5 = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
         result = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
 
         for i_final in range(0, np.shape(dataDbar[i_dataset].test.images)[0] - bSize +1 ):
             print(i_final)
             feed_test = {imag: dataDbar[i_dataset].test.images[i_final:i_final + bSize],
                          true: dataDbar[i_dataset].test.true[i_final:i_final + bSize]}
-            test_result, K1,K2,K3,K4,K5,L1,L2,L3,L4,L5 = sess.run([y_diff, kappaEst1,kappaEst2,kappaEst3,kappaEst4,kappaEst5,Lay1,Lay2,Lay3,Lay4,Lay5], feed_dict=feed_test)
+            test_result, K1,K2,K3,K4,K5 = sess.run([y_diff, kappaEst1,kappaEst2,kappaEst3,kappaEst4,kappaEst5], feed_dict=feed_test)
 
             result[i_final:i_final + bSize] = test_result[0:];
             outK1[i_final:i_final + bSize] = K1[0:];
@@ -570,11 +561,6 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             outK3[i_final:i_final + bSize] = K3[0:];
             outK4[i_final:i_final + bSize] = K4[0:];
             outK5[i_final:i_final + bSize] = K5[0:];
-            outL1[i_final:i_final + bSize] = L1[0:];
-            outL2[i_final:i_final + bSize] = L2[0:];
-            outL3[i_final:i_final + bSize] = L3[0:];
-            outL4[i_final:i_final + bSize] = L4[0:];
-            outL5[i_final:i_final + bSize] = L5[0:];
         dict_sio = {
             'Input': dataDbar[i_dataset].test.images[:, :, :, :],
             'True': dataDbar[i_dataset].test.true[:, :, :, :],
@@ -584,11 +570,6 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             'k3': outK3,
             'k4': outK4,
             'k5': outK5,
-            'l1': outL1,
-            'l2': outL2,
-            'l3': outL3,
-            'l4': outL4,
-            'l5': outL5,
         }
         # print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)

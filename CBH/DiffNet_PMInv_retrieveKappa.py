@@ -355,7 +355,7 @@ def assembleXupdate2D(x_update, kappa, dt, order, str_Knature='tensorial'):
                                         tf.multiply(tf.reshape(kappa[:, :, :, count_k], [bSize, N, N, 1]),
                                                     shiftX(x_update, i, j)));
 
-    x_out_mult = tf.multiply(dt, x_out);
+    x_out_mult = tf.multiply(dt, tf.sum(x_out, tf.multiply(kappa[:,:,:,4],x_update ) );
     if order == 1:
         return x_out_mult
     else:
