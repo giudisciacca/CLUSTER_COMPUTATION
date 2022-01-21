@@ -34,7 +34,8 @@ name = os.path.splitext(os.path.basename(__file__))[0]
 
 name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/202106_CBH/DiffNet/Interpretable9/';
 #name = '/home/gdisciac/202106_CBH_res//DiffNet/'+'/Interpretable9mua/';
-name = '/home/gdisciac/'+sys.argv[3]+'/DiffNet/'+'Interpretable9mua/'+sys.argv[2]+'/';
+name = '/home/gdisciac/'+sys.argv[3]+'/DiffNet/'+'Interpretable9mua/';
+os.system('mkdir -p ' + name.replace('/home','/scratch0') )
 #name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/first_session/DiffNet/Interpretable9/';
 bSize = int(1)
 chan = int(1)
@@ -302,7 +303,7 @@ def diffLayer(x_in, bSize, N, layNum):
         Kappa.append(kappa[:, :, :, 0:out_chan]);
 
 
-    x_update = x_update - tf.multiply(tf.reshape(kappa[:,:,:,-1],[bSize,N,N,1]),x_update)+assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan-1], dt,
+    x_update = x_update - tf.multiply(dt,tf.multiply(tf.reshape(kappa[:,:,:,-1],[bSize,N,N,1]),x_update))+assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan-1], dt,
                                             order_step, str_Knature=Knature)
     x_out = tf.reshape(x_update, [bSize, N, N, 1])
 
@@ -355,7 +356,7 @@ def assembleXupdate2D(x_update, kappa, dt, order, str_Knature='tensorial'):
                                         tf.multiply(tf.reshape(kappa[:, :, :, count_k], [bSize, N, N, 1]),
                                                     shiftX(x_update, i, j)));
 
-    x_out_mult = tf.multiply(dt, tf.sum(x_out, tf.multiply(kappa[:,:,:,4],x_update ) );
+    x_out_mult = tf.multiply(dt,x_out);
     if order == 1:
         return x_out_mult
     else:
@@ -652,8 +653,8 @@ folder_tensorboard = '';
 folder_data = '../processed4python/multiGamma/2020remake/transmission/EXP/CBH/202106_CBH/';
 folder_data = '/home/gdisciac/CBH/';
 
-commonName_train = folder_data + 'EXP2021_';
-commonName_test = folder_data + 'EXP2021_';
+commonName_train = folder_data + '';#'EXP2021_';
+commonName_test = folder_data + '';#'EXP2021_';
 '''
 specName_train = ['phantom1_5mm_1FT_phantom2_5mm_1FT_moving_normPeak',
                   'phantom1_5mm_1FT_moving_normPeak',

@@ -33,8 +33,8 @@ name = os.path.splitext(os.path.basename(__file__))[0]
 name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/202106_CBH/DiffNet/'+Knature+'/';
 #name = '/cs/research/medim/gdisciac/202106_CBH_res/DiffNet/'+Knature+'/';
 name = '/home/gdisciac/202106_CBH_res/DiffNet/'+Knature+'/'+sys.argv[1]+'/';
-name = '/home/gdisciac/'+sys.argv[4]+'/DiffNet/'+Knature+'/'+sys.argv[1]+'/';
-
+name = '/home/gdisciac/'+sys.argv[4]+'/DiffNet/'+Knature+'/'+'/';
+os.system('mkdir -p ' + name.replace('/home','/scratch0') )
 bSize=int(1)
 chan=int(1)
 
@@ -574,8 +574,8 @@ specName_test =  [['nohete'],['1'],['2'],['3'], ['4'], ['5'],
 folder_tensorboard = '';
 folder_data = '../processed4python/multiGamma/2020remake/transmission/EXP/CBH/202106_CBH/';
 folder_data = '/home/gdisciac/CBH/';
-commonName_train = folder_data + 'EXP2021_';
-commonName_test = folder_data + 'EXP2021_';
+commonName_train = folder_data +'';# 'EXP2021_';
+commonName_test = folder_data +'';# 'EXP2021_';
 '''
 specName_train = ['phantom1_5mm_2FT_moving_normArea',
                   'phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea',

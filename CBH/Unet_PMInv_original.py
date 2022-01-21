@@ -34,7 +34,8 @@ FLAGS = None
 
 name = os.path.splitext(os.path.basename(__file__))[0]
 name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/202106_CBH/Unet/'
-name = '/home/gdisciac/'+sys.argv[3]+'/Unet/'+sys.argv[2]+'/';
+name = '/home/gdisciac/'+sys.argv[3]+'/Unet/'+'/';
+os.system('mkdir -p ' + name.replace('/home','/scratch0') )
 bSize = int(1)
 chan = int(1)
 
@@ -495,8 +496,8 @@ train_num = np.multiply([150 - bSize ,150 - bSize ,150 - bSize ,150 - bSize ,150
  '''
 folder_tensorboard = '';
 folder_data = '/home/gdisciac/CBH/';
-commonName_train = folder_data + 'EXP2021_';
-commonName_test = folder_data + 'EXP2021_';
+commonName_train = folder_data +'';# 'EXP2021_';
+commonName_test = folder_data +'';# 'EXP2021_';
 ''''
 specName_train = ['phantom1_5mm_1FT_phantom2_5mm_1FT_moving_normPeak',
                   'phantom1_5mm_1FT_moving_normPeak',

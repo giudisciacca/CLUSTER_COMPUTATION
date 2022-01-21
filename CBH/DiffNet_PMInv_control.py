@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jun 18 11:52:42 2019
@@ -34,7 +34,8 @@ Knature = sys.argv[1];
 name = os.path.splitext(os.path.basename(__file__))[0]
 name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/202106_CBH/DiffNet/Control/';
 name = '/cs/research/medim/gdisciac/202106_CBH_res/DiffNet/'+'Control/';
-name = '/home/gdisciac/'+sys.argv[4]+'/DiffNet/'+'Control/';
+name = '/home/gdisciac/'+sys.argv[4]+'/DiffNet/'+'Control/'+'/';
+os.system('mkdir -p ' + name.replace('/home','/scratch0') )
 bSize = int(1)
 chan = int(1)
 
@@ -613,7 +614,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             print(i_final)
             feed_test = {imag: dataDbar[i_dataset].test.images[i_final:i_final + bSize],
                          true: dataDbar[i_dataset].test.true[i_final:i_final + bSize],
-                         contr: dataDbar[i_dataset].test.controls[i_final:i_final + bSize],,learningRate: lVal}
+                         contr: dataDbar[i_dataset].test.controls[i_final:i_final + bSize],learningRate: lVal}
             test_result, KappaArray = sess.run([y_diff, Kappa], feed_dict=feed_test)
             result[i_final:i_final + bSize] = test_result[0:];
             resultK[i_final:i_final + bSize] = KappaArray[0:];
@@ -681,8 +682,8 @@ saveMatCommon = 'RESULTS/' + 'DOCM_orig_sepTest/';  # implicit'
 folder_tensorboard = '';
 folder_data = '../processed4python/multiGamma/2020remake/transmission/EXP/CBH/202106_CBH/';
 folder_data = '/home/gdisciac/CBH/';
-commonName_train = folder_data + 'EXP2021_';
-commonName_test = folder_data + 'EXP2021_';
+commonName_train = folder_data + '';#'EXP2021_';
+commonName_test = folder_data + '';#'EXP2021_';
 ''''
 specName_train = ['phantom1_5mm_1FT_phantom2_5mm_1FT_moving_normPeak',
                   'phantom1_5mm_1FT_moving_normPeak',
