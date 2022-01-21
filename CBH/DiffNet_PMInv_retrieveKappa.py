@@ -582,9 +582,11 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         # print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)
         print("Model saved in file: %s" % MatOutName[i_dataset])
-    save_path = saver.save(sess, filePath)
+    #save_path = saver.save(sess, filePath)
 
     # get gamma and results
+    os.system('rm '+MatOutName[0][0:-4].replace('/home','/scratch0')+'*best_binaryInput*')
+    os.system('rm '+MatOutName[0][0:-4].replace('/home','/scratch0')+'*checkpoint*')
 
     print('Result Saved')
 

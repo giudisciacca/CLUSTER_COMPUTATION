@@ -34,7 +34,7 @@ FLAGS = None
 
 name = os.path.splitext(os.path.basename(__file__))[0]
 name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/202106_CBH/Unet/'
-name = '/home/gdisciac/'+sys.argv[3]+'/Unet/'+'/';
+name = '/home/gdisciac/'+sys.argv[3]+'/Unet/';
 os.system('mkdir -p ' + name.replace('/home','/scratch0') )
 bSize = int(1)
 chan = int(1)
@@ -436,9 +436,13 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         # print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)
         print("Model saved in file: %s" % MatOutName[i_dataset])
-    save_path = saver.save(sess, filePath)
-    print("Model saved in file: %s" % save_path)
-                # get gamma and results
+
+    #save_path = saver.save(sess, filePath)
+    #print("Model saved in file: %s" % save_path)
+    # get gamma and results
+    os.system('rm '+MatOutName[0][0:-4].replace('/home','/scratch0')+'*best_binaryInput*')
+    os.system('rm '+MatOutName[0][0:-4].replace('/home','/scratch0')+'*checkpoint*')
+
     sess.close();
         #   tf.reset_54trg fgult_graph()
 

@@ -33,7 +33,7 @@ name = os.path.splitext(os.path.basename(__file__))[0]
 name = '/scratch0/NOT_BACKED_UP/gdisciac/mcx_files/tensorboard/DOCM_2020Remake/transmission/EXP/CBH/202106_CBH/DiffNet/'+Knature+'/';
 #name = '/cs/research/medim/gdisciac/202106_CBH_res/DiffNet/'+Knature+'/';
 name = '/home/gdisciac/202106_CBH_res/DiffNet/'+Knature+'/'+sys.argv[1]+'/';
-name = '/home/gdisciac/'+sys.argv[4]+'/DiffNet/'+Knature+'/'+'/';
+name = '/home/gdisciac/'+sys.argv[4]+'/DiffNet/'+Knature+'/';
 os.system('mkdir -p ' + name.replace('/home','/scratch0') )
 bSize=int(1)
 chan=int(1)
@@ -530,6 +530,8 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         sio.savemat(MatOutName[i_dataset], dict_sio)
         print("Model saved in file: %s" % MatOutName[i_dataset])
     # get gamma and results
+    os.system('rm '+MatOutName[0][0:-4].replace('/home','/scratch0')+'*best_binaryInput*')
+    os.system('rm '+MatOutName[0][0:-4].replace('/home','/scratch0')+'*checkpoint*')
 
     print('Result Saved')
 
