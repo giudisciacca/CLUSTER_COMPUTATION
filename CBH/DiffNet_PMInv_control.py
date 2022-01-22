@@ -464,11 +464,12 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         x_control = (tf.reshape(contr, [bSize, N, N, chan]))
         iii = 0;
         rl = 0;
-        Kappa = None*[iterMain]
+        Kappa_ = [] #None*[iterMain]
         for iii in range(iterMain):
             x_update,x_control, kappaEst1, Kappa[iii] = diffLayer_control(x_update,x_control , bSize, N, iii + 100 * iii)
             rl = rl + (1 / (iterMain - iii)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
                 tf.nn.relu(true))
+            Kappa_.append(tf.expand_dims(tf.reshape(kappaEst1,[bSize,N,N,9]),axis=0))
             '''
             x_update, kappaEst2, Kappa2 = diffLayer(x_update, bSize, N, 1 + 100 * iii)
             x_update, kappaEst3, Kappa3 = diffLayer(x_update, bSize, N, 2 + 100 * iii)
@@ -588,7 +589,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
 
             # run for all samples
 
-            if i > 1200:
+            if i > 400:
                 # check mean validation error
                 i_dataset = 1;
                 array_val = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
@@ -617,12 +618,12 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
                          contr: dataDbar[i_dataset].test.controls[i_final:i_final + bSize],learningRate: lVal}
             test_result, KappaArray = sess.run([y_diff, Kappa], feed_dict=feed_test)
             result[i_final:i_final + bSize] = test_result[0:];
-            resultK[i_final:i_final + bSize] = KappaArray[0:];
+            resultK[i_final:i_final + bSize] = KappaArray[0];
         dict_sio = {
             'Input': dataDbar[i_dataset].test.images[:, :, :, :],
             'True': dataDbar[i_dataset].test.true[:, :, :, :],
-            'Result': result,
-            'ResultK': resultK
+            'Result': np.array(result),
+            'ResultK': np.array(resultK)
         }
         # print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)

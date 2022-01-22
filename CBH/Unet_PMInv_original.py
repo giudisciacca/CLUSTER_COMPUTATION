@@ -401,7 +401,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
 
                 print('iter={}, loss={}, rel.loss.test={}, rel.loss.train={}'.format(i, loss_result, rel_loss_res,
                                                                                      loss_result_train))
-            if i > 1200:
+            if i > 400:
                 # check mean validation error
                 i_dataset = 1;
                 array_val = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])

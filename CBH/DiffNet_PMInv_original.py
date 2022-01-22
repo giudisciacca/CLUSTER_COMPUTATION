@@ -347,7 +347,7 @@ def getKappa(inVal,shape,varName):
 
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(5)
-    maxIter = int(32000)
+    maxIter = int(1500)#32000
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None]*len(dataSetTest);
@@ -363,10 +363,12 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         x_update = (tf.reshape(imag, [bSize, N, N, chan]))
         iii = 0;
         rl = 0;
-        Kappa = [None] * iterMain
-        for iii in range(iterMain):
-            x_update, kappaEst1, Kappa[iii] = diffLayer(x_update, bSize, N, iii + 100 * iii)
+        Kappa_ = []
+        for iii in range(0,iterMain):
+            x_update, kappaEst1, tmpKappa_ = diffLayer(x_update, bSize, N, iii + 100 * iii)
             rl = rl + (1/(iterMain - iii)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(tf.nn.relu(true))
+            #Kappa_.append(tmpKappa_);
+            Kappa_.append(tf.expand_dims(tf.reshape(kappaEst1,[bSize,N,N,9]),axis=0))
             '''
             x_update, kappaEst2, Kappa2 = diffLayer(x_update, bSize, N, 1 + 100 * iii)
             x_update, kappaEst3, Kappa3 = diffLayer(x_update, bSize, N, 2 + 100 * iii)
@@ -385,6 +387,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             x_update, kappaEst4, Kappa4 = diffLayer(x_update, bSize, N, 13 + 100 * iii)
             x_update, kappaEst5, Kappa5 = diffLayer(x_update, bSize, N, 14 + 100 * iii)
             '''
+        Kappa_ = tf.concat(Kappa_,0)
         x_update = tf.reshape(x_update, [bSize, N, N, chan])
         x_sum = x_update[:, :, :, 0]
         for ccc in range(chan - 1 ):
@@ -449,7 +452,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     lVal = np.single(sys.argv[2]) #0.5e-4 #0.01e-4
     print('LVAL ======='+str(lVal))
     startIt = 0
-    error_val_old = 1.2;
+    error_val_old = 4.2;
     for i in range(maxIter):
 
         if (i % 20000 == 0 ) & (i >0):
@@ -490,7 +493,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
 
     # run for all samples
 
-            if i > 4000:
+            if i > 400:
                 # check mean validation error
                 i_dataset = 1;
                 array_val = [None]*( np.shape(dataDbar[i_dataset].test.images)[0])
@@ -517,15 +520,19 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             print(i_final)
             feed_test = {imag: dataDbar[i_dataset].test.images[i_final:i_final+bSize],
                          true: dataDbar[i_dataset].test.true[i_final:i_final+bSize], learningRate:lVal}
-            test_result, KappaArray = sess.run([ y_diff,Kappa], feed_dict=feed_test)
+            test_result, KappaArray = sess.run([ y_diff, Kappa_], feed_dict=feed_test)
             result[i_final:i_final+bSize] = test_result[0:];
-            resultK[i_final:i_final+bSize] = KappaArray[0:];
+            resultK[i_final:i_final+bSize] = KappaArray[0];        
+            #print(KappaArray[0:])
+            
+
         dict_sio = {
             'Input': dataDbar[i_dataset].test.images[:,:,:,:],
             'True': dataDbar[i_dataset].test.true[:,:,:,:],
-            'Result': result,
-            'ResultK':resultK
+            'Result': np.array(result),
+            'ResultK':np.array(resultK)
         }
+        
         #print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)
         print("Model saved in file: %s" % MatOutName[i_dataset])
@@ -539,40 +546,9 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     #   tf.reset_54trg fgult_graph()
 
     print('--------------------> DONE <--------------------')
-''' 
-folder_tensorboard = '';
-folder_data = '../processed4python/multiGamma/2020remake/transmission/EXP/CBH/second_session/';
-commonName_train = folder_data + 'EXP2_transmission_phantom';
-commonName_test = folder_data + 'EXP2_transmission_phantom';
-specName_train = ['2','1','3','4','5','_session2_merged','_session12_phantoms' , '_session12let_whole', '_session12_merged2345','_session12_merged1345','_session12_merged1245','_session12_merged1235']
-specName_test =  [['2'],['1'],['3'],['4'],['5'],['_session2_merged'],
-                  ['_session12_phantoms'], ['_session12let_whole'],['_session12_merged2345','1'],['_session12_merged1345','2'],['_session12_merged1245','3'],['_session12_merged1235','4']];
-
-#folder_data = '../processed4python/multiGamma/2020remake/transmission/EXP/CBH/first_session/';
-#commonName_train = folder_data + 'EXP1_transmission_';
-#commonName_test = folder_data + 'EXP1_transmission_';
-#specName_train = ['milk_conc1let','milk_conc1','milk_conc2let', 'phantom1let'];
-#specName_test =  [['milk_conc1let'],['milk_conc1'],['milk_conc2let'], ['phantom1let'] ];
+ 
 
 
-folder_tensorboard = '';
-folder_data = '../processed4python/multiGamma/2020remake/transmission/MC/';
-commonName_train = folder_data + 'DOCM4DiffNet_transmission_liqMus';
-commonName_test = folder_data + 'DOCM4DiffNet_transmission_liqMus';
-specName_train = ['1','2','_merged']
-specName_test =  [['1','2','_merged'],['2','1','_merged'],['_merged','2','1']];
-
-folder_tensorboard = '';
-folder_data = '../processed4python/multiGamma/2020remake/transmission/PDE/FEM_PDE_avg_sca10/';
-commonName_train = folder_data + 'OriginalDiff_';
-commonName_test = folder_data + 'OriginalDiff_';
-specName_train = ['nohete','1','2','3','4','5','ex_1_combOf_4', 'ex_2_combOf_4', 'allRandom']
-specName_test =  [['nohete'],['1'],['2'],['3'], ['4'], ['5'],
-                  ['ex_1_combOf_4'],['ex_2_combOf_4'],
-                  ['allRandom','nohete','1','2','3','4','5','ex_1_combOf_4', 'ex_2_combOf_4']
-                  ];
-
-'''
 folder_tensorboard = '';
 folder_data = '../processed4python/multiGamma/2020remake/transmission/EXP/CBH/202106_CBH/';
 folder_data = '/home/gdisciac/CBH/';
@@ -613,7 +589,6 @@ saveMatCommon = 'RESULTS/'+'DOCM_orig_sepTest/';#implicit'
 
 logNameCommon = folder_tensorboard +'orig_unet_exp_';
 
-#outL = main(netPath,logName,dataSetTrain,dataSetTest, 1050,savematName)
 
 for j_proc in range(0, len(specName_train)):
     dataSetTest = [None] * len(specName_test[j_proc]);
@@ -633,3 +608,4 @@ for j_proc in range(0, len(specName_train)):
     p.start()
     p.join()
     p.terminate()
+
