@@ -446,7 +446,7 @@ def getKappa(inVal, shape, varName):
 
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(5)
-    maxIter = int(32000)
+    maxIter = int(50000)
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None] * len(dataSetTest);
@@ -465,10 +465,12 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         iii = 0;
         rl = 0;
         Kappa_ = [] #None*[iterMain]
+        x_ = []
         for iii in range(iterMain):
             x_update,x_control, kappaEst1, Kappa[iii] = diffLayer_control(x_update,x_control , bSize, N, iii + 100 * iii)
             rl = rl + (1 / (iterMain - iii)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
                 tf.nn.relu(true))
+            x_.append(tf.expand_dims(tf.reshape(x_update,[bSize,N,N,chan]),axis=0))
             Kappa_.append(tf.expand_dims(tf.reshape(kappaEst1,[bSize,N,N,9]),axis=0))
             '''
             x_update, kappaEst2, Kappa2 = diffLayer(x_update, bSize, N, 1 + 100 * iii)
@@ -611,19 +613,23 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     for i_dataset in range(0, len(dataDbar)):
         result = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
         resultK = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
+        resultX = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
         for i_final in range(0, np.shape(dataDbar[i_dataset].test.images)[0] - bSize + 1):
             print(i_final)
             feed_test = {imag: dataDbar[i_dataset].test.images[i_final:i_final + bSize],
                          true: dataDbar[i_dataset].test.true[i_final:i_final + bSize],
                          contr: dataDbar[i_dataset].test.controls[i_final:i_final + bSize],learningRate: lVal}
-            test_result, KappaArray = sess.run([y_diff, Kappa], feed_dict=feed_test)
+            #test_result, KappaArray = sess.run([y_diff, Kappa], feed_dict=feed_test)
+            test_result, KappaArray, XArray = sess.run([ y_diff, Kappa_,x_], feed_dict=feed_test)
             result[i_final:i_final + bSize] = test_result[0:];
             resultK[i_final:i_final + bSize] = KappaArray[0];
+            resultX[i_final:i_final+bSize] = XArray[0];
         dict_sio = {
             'Input': dataDbar[i_dataset].test.images[:, :, :, :],
             'True': dataDbar[i_dataset].test.true[:, :, :, :],
             'Result': np.array(result),
-            'ResultK': np.array(resultK)
+            'ResultK': np.array(resultK),
+            'x':np.array(resultX)            
         }
         # print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)
