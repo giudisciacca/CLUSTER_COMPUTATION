@@ -4,7 +4,7 @@
 clearvars -except Ilaunch
 scattering_rota = [0.25,0.5,1,2];%[0.1,0.3,0.5,0.7,1,3,4,5,7,10,15,20];%, 2, 0.3];
 perc_rota = [0,0.2,0.5,0.8]; 
-ph_rota = [1e2,1e7,1e8];
+ph_rota = [1e6,1e7,1e8];
 %Ilaunch = 16;
 Icompare = 1;
 for count_ph = 1:numel(ph_rota)
@@ -62,6 +62,7 @@ for count_liquido_scatter=found_scatter
     cfg.gpuid=1;
     cfg.nphoton = 5.5e5; 
     nph_TOT = ph_rota(count_ph); % chosen by rota
+    cfg.nphoton = 0.55 * nph_TOT;    
     cfg.tstart=0;
     cfg.tend=6e-9;
     cfg.tstep=1e-11;
@@ -71,12 +72,12 @@ for count_liquido_scatter=found_scatter
     cfg.unitinmm = 1;
     cfg.isnormalized = 0;
     cfg.detpos = [];
-    for i = 1:NX
-        for j = 1:NY
-            cfg.detpos=cat(1,cfg.detpos,[i,j,1, 0.5]);
+    for i = 1:NX-1
+        for j = 1:NY-1
+            cfg.detpos=cat(1,cfg.detpos,[i,j,2, 0.5]);
         end
     end
-
+    cfg.maxdetphoton = 1e7;
     srcpos = [1, 1, NZ];
     N_src = 1;
     cfg.srctype= 'pattern';
@@ -170,7 +171,7 @@ for count_liquido_scatter=found_scatter
                     cfg.seed = randi(10000);
                     evalc('[flux_hom, det] = mcxlab(cfg);');
                     flux_hom_data = flux_hom_data + flux_hom.data;
-                    nphdet = nphdet + numel(det.detid)*2/sqrt(pi);
+                    nphdet = nphdet + numel(det.detid)*((2/sqrt(pi))^2);
                     
                 end
                 
@@ -190,7 +191,7 @@ for count_liquido_scatter=found_scatter
                     kit_cfg.seed = randi(10000);
                     evalc('[flux_control,det] = mcxlab(kit_cfg);');
                     flux_control_data = flux_control_data + flux_control.data;
-                    nphdet = nphdet + numel(det.detid)*2/sqrt(pi);                   
+                    nphdet = nphdet + numel(det.detid)*((2/sqrt(pi))^2);                   
                 end
                  whole_controlCW0(:,:,:) = sum(flux_control_data(:,:,:,:),4);
                  control_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_controlCW0, NZ, 1e20);
