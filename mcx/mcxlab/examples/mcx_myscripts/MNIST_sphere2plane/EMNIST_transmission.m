@@ -4,8 +4,8 @@
 clearvars -except Ilaunch
 scattering_rota = [0.25,0.5,1,2];%[0.1,0.3,0.5,0.7,1,3,4,5,7,10,15,20];%, 2, 0.3];
 perc_rota = [0,0.2,0.5,0.8]; 
-ph_rota = [1e6,1e7,1e8];
-
+ph_rota = [1e2,1e7,1e8];
+%Ilaunch = 16;
 Icompare = 1;
 for count_ph = 1:numel(ph_rota)
 	for count_perc = 1:numel(perc_rota)
@@ -19,7 +19,8 @@ for count_ph = 1:numel(ph_rota)
 		end
 	end
 end
-
+g_aniso = 0.89;
+scattering_rota = [0.25,0.5,1,2]./0.89;
 for count_ph = found_ph
 for count_perc = found_perc
 for count_liquido_scatter=found_scatter
@@ -27,13 +28,13 @@ for count_liquido_scatter=found_scatter
     %clearvars -except count_liquido_scatter scattering_rota count 
     checkboard = zeros(60,60);
     checkboard(3:6:end,3:6:end)=1;
-    midname = 'transmission_2021remake_';
+    midname = 'transmission_2021remake_equalised_';
     RUN = true;
     RUN_HOM = true;
     SAVE = true;
     %% geometry of internal sphere
-    NX=60; NY = 60;NZ = 10;
-    SKULL2BRAIN=10;
+    NX=60; NY = 60;NZ = 30+2;
+    SKULL2BRAIN=30;
     DIM = [NX, NY, NZ];
     x_vec = 1:DIM(1);
     y_vec = 1:DIM(2);
@@ -59,14 +60,22 @@ for count_liquido_scatter=found_scatter
     %% Setting general parameters
     cfg.autopilot=1;
     cfg.gpuid=1;
-    cfg.nphoton = ph_rota(count_ph); % chosen by rota
+    cfg.nphoton = 5.5e5; 
+    nph_TOT = ph_rota(count_ph); % chosen by rota
     cfg.tstart=0;
     cfg.tend=6e-9;
     cfg.tstep=1e-11;
     
-    cfg.isreflect = 1;
+    cfg.isreflect = 0;
+    cfg.issaveref = 1;
     cfg.unitinmm = 1;
-
+    cfg.isnormalized = 0;
+    cfg.detpos = [];
+    for i = 1:NX
+        for j = 1:NY
+            cfg.detpos=cat(1,cfg.detpos,[i,j,1, 0.5]);
+        end
+    end
 
     srcpos = [1, 1, NZ];
     N_src = 1;
@@ -124,7 +133,8 @@ for count_liquido_scatter=found_scatter
 
             fprintf('Pseudo heterogenities set:%g \n', i_mnist)
             cfg.vol(idx_sphere_in == 1) = start_brain;
-            
+            cfg.vol(:,:,end) = 0;
+            cfg.vol(:,:,1) = 0;
                
             %cfg.prop = zeros([index_of_startMNIST + 1/quantum,4]);                       
             % get quantized values to index
@@ -153,8 +163,17 @@ for count_liquido_scatter=found_scatter
                 disp(srcpos(i_src,:));
 
                 fprintf('ITERATION_MAIN:%g \n', i_mnist)
-                evalc('[flux_hom] = mcxlab(cfg);');
-                flux_hom_data = flux_hom.data;
+                
+                flux_hom_data = 0;
+                nphdet = 0;
+                while nphdet <  nph_TOT
+                    cfg.seed = randi(10000);
+                    evalc('[flux_hom, det] = mcxlab(cfg);');
+                    flux_hom_data = flux_hom_data + flux_hom.data;
+                    nphdet = nphdet + numel(det.detid)*2/sqrt(pi);
+                    
+                end
+                
                 whole_homCW0(:,:,:) = sum(flux_hom_data(:,:,:,:),4); 
                 hom_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_homCW0, NZ, 1e20);
                 whole_homCW(:,:,1:NZ,i_src, i_mnist) = sum(flux_hom_data(:,:,1:NZ,:),4);    
@@ -164,8 +183,15 @@ for count_liquido_scatter=found_scatter
                  cfg.srcpattern = zeros(60,60);
                  cfg.srcpattern = checkboard;
                  kit_cfg = cfg;
-                 evalc('[flux_control] = mcxlab(kit_cfg);');
-                 flux_control_data = flux_control.data;
+                 
+                flux_control_data = 0;
+                nphdet = 0;
+                while nphdet <  nph_TOT
+                    kit_cfg.seed = randi(10000);
+                    evalc('[flux_control,det] = mcxlab(kit_cfg);');
+                    flux_control_data = flux_control_data + flux_control.data;
+                    nphdet = nphdet + numel(det.detid)*2/sqrt(pi);                   
+                end
                  whole_controlCW0(:,:,:) = sum(flux_control_data(:,:,:,:),4);
                  control_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_controlCW0, NZ, 1e20);
                  whole_controlCW(:,:,1:NZ,i_src, i_mnist) = sum(flux_control_data(:,:,1:NZ,:),4);
@@ -195,3 +221,5 @@ for count_liquido_scatter=found_scatter
 end
 end
 end
+
+

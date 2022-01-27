@@ -1,7 +1,7 @@
 #!/bin/bash
-#$ -l tmem=10G
+#$ -l tmem=5G
 #$ -l h_vmem=40G
-#$ -l h_rt=3:00:00
+#$ -l h_rt=30:00:00
 #$ -S /bin/bash
 #$ -j y
 #$ -N mcx_bash.sh
