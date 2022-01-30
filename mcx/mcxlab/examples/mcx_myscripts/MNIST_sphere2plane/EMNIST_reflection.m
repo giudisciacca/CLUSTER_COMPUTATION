@@ -1,205 +1,216 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SIMULATIONS OF MNIST SET WITH MCX SPHERE TO PLANE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clear all
-scattering_rota = [0.5,1,2,3,4];%, 2, 3, 4, 0.5];
-for count_liquido_scatter=1:numel(scattering_rota)
-    clearvars -except count_liquido_scatter scattering_rota
-    midname = 'reflection_planar_hete_letter_';
+clearvars -except Ilaunch
+scattering_rota = [0.25,0.5,1,2];%[0.1,0.3,0.5,0.7,1,3,4,5,7,10,15,20];%, 2, 0.3];
+perc_rota = [0,0.2,0.5,0.8]; 
+ph_rota = [1e5,5e5,1e6];
+%Ilaunch = 13;
+Icompare = 1;
+for count_ph = 1:numel(ph_rota)
+	for count_perc = 1:numel(perc_rota)
+		for count_liquido_scatter=1:numel(scattering_rota)
+			if Icompare == Ilaunch		
+				found_ph = count_ph
+				found_perc = count_perc
+				found_scatter = count_liquido_scatter
+			end
+			Icompare = Icompare+1;
+		end
+	end
+end
+g_aniso = 0.89;
+scattering_rota = [0.25,0.5,1,2]./0.89;
+for count_ph = found_ph
+for count_perc = found_perc
+for count_liquido_scatter=found_scatter
+
+    %clearvars -except count_liquido_scatter scattering_rota count 
+    checkboard = zeros(60,60);
+    checkboard(3:6:end,3:6:end)=1;
+    midname = 'reflection_2021remake_equalised_';
     RUN = true;
     RUN_HOM = true;
     SAVE = true;
-    DISPLAY = false;
-    pause(3600 * 0);
     %% geometry of internal sphere
-    DIM = [60, 60, 30];
-    cubX_in =[2,43];
-    cubY_in = [16,43];
-    cubZ_in = [2,50];
-    SKULL2BRAIN = 10;
-    RAD_IN = 25;
-    x0 = DIM(1)/2;
-    y0 = DIM(2)/2;
-    z0 = RAD_IN + SKULL2BRAIN;
+    NX=60; NY = 60;NZ = 30+2;
+    SKULL2BRAIN=16;
+    DIM = [NX, NY, NZ];
     x_vec = 1:DIM(1);
     y_vec = 1:DIM(2);
     z_vec = 1:DIM(3);
     [XX,YY,ZZ] = meshgrid(x_vec, y_vec, z_vec);
-    idx_sphere_in = ((XX - x0).^2 + (YY - y0).^2 + (ZZ - z0).^2 <= RAD_IN^2) .* (ZZ <= z0);
+    %idx_sphere_in = ((XX - x0).^2 + (YY - y0).^2 + (ZZ - z0).^2 <= RAD_IN^2) .* (ZZ <= z0);
+    idx_sphere_in = ZZ>=SKULL2BRAIN ; % no sphere
     
     %% pseudoheterogeneities
-    scat_hete.perc_noise = 0.4;
-    scat_hete.l_corr = 5;
+    scat_hete.perc_noise = perc_rota(count_perc); % chosen by rota
+    scat_hete.l_corr = 15; % keep fixed
     
     %% optical parameters
     outside_0 = [0 0 1 1];
     liquido_1 = [1e-7  scattering_rota(count_liquido_scatter)    0    1.37];
     start_liquido = 1;
-    end_liquido = 21;
-    
-    brain_2 = [1e-1  5    0    1.37];
+    end_liquido = 21;   
+    brain_2 = [1e-2  1    0    1.37];
     start_brain = end_liquido + 1;
+    start_abs = start_brain+1;
     index_of_startMNIST = start_brain + 1;
-    quantum = 0.1;
-    surface_3n = [1 2 0 1.37;];
+    quantum = 1;
+    surface_3n = [1e-2 1 0.89 1.37;];
+    high_scatter = [1e-2 4 0 1.37];
+    high_abs = [0.6 3  0 1.37];
     %% Setting general parameters
-    mnist_size = 1200;
-    mnist_init = 1;
-    cfg.nphoton = 5e8;%8;
+    cfg.autopilot=1;
+    cfg.gpuid=1;
+    %cfg.nphoton = 5.5e5; 
+    nph_TOT = ph_rota(count_ph); % chosen by rota
+    cfg.nphoton = 1e8;%min(15*nph_TOT,5e8);    
     cfg.tstart=0;
     cfg.tend=6e-9;
-    cfg.tstep=1e-10;
-    cfg.isreflect = 0;
-    cfg.isrefint = 0;
-    cfg.isspecular = 0;
+    cfg.tstep=1e-11;
+    
+    cfg.isreflect = 1;
+    cfg.issaveref = 1;
     cfg.unitinmm = 1;
-
-% % %     [srcx,srcy,srcz] = meshgrid([15,20,25,30,25,40,45], [15,20,25,30,25,40,45], 0);
-% % %     srcpos = [srcx(:), srcy(:), srcz(:)];
-% % %     N_src = size(srcpos,1);
-% % %     cfg.srctype='gaussian';
-% % %     cfg.srcparam1 = [5,0,0,0];
-% % %     cfg.srcdir=[0 0 1];
-%
-    srcpos = [1, 1, 0];
-    N_src = size(srcpos,1);
-    cfg.srctype='planar';% 'pattern %'gaussian';%
-    cfg.srcparam1 = [DIM(1),0,0,0];%;[3 0 0 0]; % 
-    cfg.srcparam2 = [0,DIM(2),0,0];
+    cfg.isnormalized = 0;
+    cfg.detpos = [];
+    for i = 1:NX-1
+        for j = 1:NY-1
+            cfg.detpos=cat(1,cfg.detpos,[i,j,2, 0.5]);
+        end
+    end
+    cfg.maxdetphoton = min(cfg.nphoton,1e8);
+    cfg.savedetflag = 'd';
+    srcpos = [0, 0, 1];
+    N_src = 1;
+    cfg.srctype= 'planar';
+    cfg.srcparam1 = [DIM(1)+1,0,0];
+    cfg.srcparam2 = [0,DIM(2)+1,0];
     cfg.srcdir=[0 0 1];
-%
-    cfg.gpuid=1;
-    cfg.autopilot=1;
-    %cfg.seed=99999;
+    %% MNIST handling
+    mnist_size = 1200;
+    NUMBER_MNIST = mnist_size;
+    mnist_init = 1;
+    
+    MNIST_0 = load('emnist-letters.mat');
+    MNIST_0 = double(MNIST_0.dataset.train.images'/255);
+    MNIST_0 = round(reshape(MNIST_0,[28,28,124800]), abs(log10(quantum)) );
+    MNIST_0 = round(imresize(reshape(MNIST_0,[28,28,124800]), [40,40])./ ...
+        max(max(imresize(reshape(MNIST_0,[28,28,124800]), [40,40]),[],1),[],2), abs(log10(quantum)));
+    
+    MNIST = zeros(60,60, size(MNIST_0,3));
+    MNIST(11:50,11:50,:) = MNIST_0;
 
+    rng('default');
+ 
+    perm_rand = randperm(124800, NUMBER_MNIST);
+    MNIST = MNIST(:,:,perm_rand);
 
+    fixed_rand = randi(10, mnist_size, 2) - 5;
+    for i_tr = 1:mnist_size
+        MNIST(:,:,i_tr) = circshift(MNIST(:,:,i_tr) ,fixed_rand(i_tr,:));
+    end
+    
+    mnist_layer_abs = zeros(DIM(1),DIM(2), mnist_size);
     %% Inhomogenous case
     cfg.vol = [];
     cfg.prop = [];
-    MNIST = load('emnist-letters.mat');
-    MNIST = double(MNIST.dataset.train.images'/255);
-    MNIST = round(reshape(MNIST,[28,28,124800]), abs(log10(quantum)) );
-    MNIST = padarray( MNIST(:,:,mnist_init:mnist_init + mnist_size - 1), [2,2],0, 'both');
-
-    prov_MNIST = zeros(DIM(1),DIM(2), mnist_size);
-    prov_MNIST(DIM(1)/2 - 15: DIM(1)/2 + 16,DIM(2)/2 - 15: DIM(2)/2 + 16, :) = MNIST;
-    MNIST = prov_MNIST;
-    
-    rng('default');fixed_rand = randi(10, mnist_size, 2) - 5;
-    for i_tr = 1:mnist_size
-        fl1 = randi(2)-1;
-        fl2 = randi(2)-1;
-        perm12 = randi(2)-1;
-        MNIST(:,:,i_tr) = circshift(MNIST(:,:,i_tr) ,fixed_rand(i_tr,:));
-        if fl1 == 1
-            MNIST(:,:,i_tr) = flip( MNIST(:,:,i_tr), 1);
-        end
-        if fl2 == 1
-            MNIST(:,:,i_tr) = flip( MNIST(:,:,i_tr), 2);
-        end
-        if perm12 == 1
-            MNIST(:,:,i_tr) = MNIST(:,:,i_tr)';
-        end        
-    end
-    
-    %MNIST(:,:,1) = 0;
-    %MNIST(13:15,13:15, 1) = 1;
+  
     mnist_layer=MNIST(:,:,1);
 
 
     if RUN     
         % calculate the flux distribution with the given config
 
-        mnist_layer_abs = zeros(DIM(1),DIM(2), mnist_size);
         mnist_layer_photons = zeros(DIM(1), DIM(2), N_src, mnist_size);
         hom_layer_photons = zeros(DIM(1), DIM(2), N_src, mnist_size);
-        whole_homCW = zeros(DIM(1),DIM(2), cubZ_in(1), N_src, mnist_size);
-        whole_mnistCW = zeros(DIM(1),DIM(2), cubZ_in(1), N_src, mnist_size); 
+        whole_homCW = zeros(DIM(1),DIM(2), NZ, N_src, mnist_size);
+        whole_controlCW = zeros(DIM(1),DIM(2), NZ, N_src, mnist_size); 
         tic;
         for i_mnist = 1:mnist_size
-
-            cfg.vol=ones(DIM); %liquido
-        
-            cfg.vol(idx_sphere_in == 1) = 0;
-            [cfg.vol, scattering_quants] = mcx_add_correlated_noise(cfg.vol, scattering_rota(count_liquido_scatter),...
+            % handle volume
+            cfg.vol=ones(DIM); %liquido 
+            
+            [cfg.vol, scattering_quants] = mcx_add_correlated_noise(cfg.vol(:,:,1:SKULL2BRAIN-1), scattering_rota(count_liquido_scatter),...
                                                 start_liquido, end_liquido, scat_hete.l_corr,scat_hete.perc_noise);
             
-            liquido_het = zeros(numel(start_liquido:end_liquido),4);
-            liquido_het(:,1) = liquido_1(1); 
-            liquido_het(:,2) = scattering_quants;
-            liquido_het(:,3) = liquido_1(3);
-            liquido_het(:,4) = liquido_1(4);
+            cfg.vol = cat(3,cfg.vol(:,:,1:SKULL2BRAIN-1), ones(DIM(1),DIM(2), DIM(3) - SKULL2BRAIN+1));
+            fprintf('Pseudo heterogenities set:%g \n', i_mnist)
+            cfg.vol((idx_sphere_in(:) == 1)) = start_brain;
             
-            fprintf('Pseudo heterogenities set:%g \n', i_mnist)            
-            cfg.vol(idx_sphere_in == 1) = start_brain;
-            
-            
-            cfg_hom = cfg;            
-            cfg_hom.prop = zeros([index_of_startMNIST,4]);                
-            cfg.prop = zeros([index_of_startMNIST + 1/quantum,4]);                       
-            cfg_hom.prop=[outside_0;
-                         liquido_het; %pseudo het
-                          brain_2;]; % inside 2  2
-
-            cfg_hom.vol = uint8(cfg.vol);
+            cfg.vol(:,:,end) = 0;
+            cfg.vol(:,:,1) = 0;
+               
+            %cfg.prop = zeros([index_of_startMNIST + 1/quantum,4]);                       
             % get quantized values to index
             q_index = 1;
-            quantized = zeros(numel(quantum:quantum:1) ,4);
-            for q_count = quantum:quantum:1
-                    prov_surface = [ q_count * surface_3n(1), surface_3n(2:4)];
-                    quantized(q_index,:) =  prov_surface;  % MNIST layer quantized
+            for q_count = 1:numel(scattering_quants)
+                    prov_surface = [ surface_3n(1), scattering_quants(q_count) *1, surface_3n(3:4)];
+                    quantized(q_index,:) =  prov_surface; 
                     q_index = q_index  + 1;
             end
             
-            cfg.prop = [cfg_hom.prop; 
-                        quantized];
-
-
+            cfg.prop =[outside_0;...  
+                        quantized;...
+                        high_scatter;
+                        high_abs];
+                    
             fprintf('ITERATION:%g \n', i_mnist)
             mnist_layer = MNIST(:,:, i_mnist);
-            % reset volume
 
-            prov_layer = zeros(DIM(1), DIM(2));
-            prov_layer = mnist_layer;
-            prov_mnist_layer = simple_project_sph2pl(idx_sphere_in, prov_layer, SKULL2BRAIN, RAD_IN);
-            cfg.vol = cfg.vol + 1/quantum * prov_mnist_layer;
-            cfg.vol = uint8(cfg.vol);
-
-            mnist_layer_abs(:,:,i_mnist) = 0;
-            vol_idx_flat = simple_project_sph2pl(idx_sphere_in, double(cfg.vol), SKULL2BRAIN, RAD_IN);
-            for i_abs = 1:max(cfg.vol(:))
-                mnist_layer_abs(:,:,i_mnist) = mnist_layer_abs(:,:,i_mnist) + ( vol_idx_flat  == (i_abs) ) * cfg.prop(i_abs+1,1);
-            end
-
-            % simulation
-            for i_src = 1:N_src
+            
+           % simulation
+            for i_src = 1:N_src % number of sources
                 cfg.srcpos = srcpos(i_src, :);
                 %cfg.srcpattern = zeros(60,60,1);
                 %cfg.srcpattern = mnist_layer;
-                cfg_hom.srcpos = srcpos(i_src, :);
-                %cfg_hom.srcpattern  = cfg.srcpattern;
+                
+                %cfg.srcpos = srcpos(i_src, :);
+                %cfg.srcpattern  = cfg.srcpattern;
                 disp(srcpos(i_src,:));
 
-                 fprintf('ITERATION_HOMOGENEOUS:%g \n', i_mnist)
-                 evalc('[flux_hom] = mcxlab(cfg_hom);');
-                 flux_hom_data = flux_hom.data;
-                 whole_homCW0(:,:,:) = sum(flux_hom_data(:,:,:,:),4); 
-                 hom_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_homCW0, SKULL2BRAIN, RAD_IN);
-                 whole_homCW(:,:,1:cubZ_in(1),i_src, i_mnist) = sum(flux_hom_data(:,:,1:cubZ_in(1),:),4);    
+                fprintf('\nITERATION:%g\n', i_mnist)
+                fprintf('photon_diff:\n')
+                
+                
+                flux_control_data = 0;
+                flux_hom_data = 0;
+                nphdet = 0;
+                kit_cfg = cfg;
+                cfg.vol(:,:,SKULL2BRAIN) = cfg.vol(:,:,SKULL2BRAIN) + mnist_layer;
+                while abs(nphdet) <  nph_TOT
+                    
+                kit_cfg.seed = randi(10000);
+                evalc('[flux_control,det] = mcxlab(kit_cfg);');
+                flux_control_data = flux_control_data + flux_control.data;
+                nphdet = nphdet + numel(det.detid)*((2/sqrt(pi))^2);                   
+                    
+                whole_controlCW0(:,:,:) = sum(flux_control_data(:,:,:,:),4);
+                control_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_controlCW0, NZ, 1e20);
+                whole_controlCW(:,:,1:NZ,i_src, i_mnist) = sum(flux_control_data(:,:,1:NZ,:),4);                
+                
+                             
 
- 
-                 fprintf('ITERATION_HETEROGENEOUS:%g \n', i_mnist)
-                 kit_cfg = cfg;
-                 evalc('[flux_mnist] = mcxlab(kit_cfg);');
-                 flux_mnist_data = flux_mnist.data;
-                 %flux_mnist_data = flux_hom.data;%%%%%%%%%%
-                 whole_mnistCW0(:,:,:) = sum(flux_mnist_data(:,:,:,:),4); 
-                 mnist_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_mnistCW0, SKULL2BRAIN, RAD_IN);
-                 whole_mnistCW(:,:,1:cubZ_in(1),i_src, i_mnist) = sum(flux_mnist_data(:,:,1:cubZ_in(1),:),4);    
+                %flux_hom_data = 0;
+                %nphdet = 0;
+                
+                cfg.seed = randi(10000);
+                evalc('[flux_hom, det] = mcxlab(cfg);');
+                flux_hom_data = flux_hom_data + flux_hom.data;
+                nphdet = nphdet - numel(det.detid)*((2/sqrt(pi))^2);
+                                
+                fprintf('%g ', nphdet)
+                whole_homCW0(:,:,:) = sum(flux_hom_data(:,:,:,:),4); 
+                hom_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_homCW0, NZ, 1e20);
+                whole_homCW(:,:,1:NZ,i_src, i_mnist) = sum(flux_hom_data(:,:,1:NZ,:),4); 
+                end
+
              end
 
-            whole_homCW = whole_homCW(:,:,1:cubZ_in(1), :,:);
-            whole_mnistCW = whole_mnistCW(:,:,1:cubZ_in(1), :,:);
+            whole_homCW = whole_homCW(:,:,1:NZ, :,:);
+            whole_controlCW = whole_controlCW(:,:,1:NZ, :,:);
+
             time_elapsed_1iter = toc;
             disp(round(time_elapsed_1iter));  
         end
@@ -209,55 +220,16 @@ for count_liquido_scatter=1:numel(scattering_rota)
     MNIST_ex = MNIST(:,:, 1:mnist_size);
 
     disp('saving')
-    dirname = sprintf('/home/gdisciac/mcx_sim/DOCM_%s_ph%g_radius_%g_dist2scalp%g_liqMus%g/', midname, cfg.nphoton, RAD_IN, SKULL2BRAIN, liquido_1(2));
+    dirname = sprintf('/home/gdisciac/mcx_sim/DOCM_%s_ph%g_radius_inf_dist2scalp%g_liqMus%g_var%g/',...
+		midname, nph_TOT, SKULL2BRAIN,scattering_rota(count_liquido_scatter),perc_rota(count_perc) );
     mnist_spec = sprintf('mnistFrom%gto%g', mnist_init, mnist_init+mnist_size);
     mkdir(dirname);
-    save([dirname,'DOCM_', midname, mnist_spec,'_Specifications'], 'cfg','cfg_hom', 'srcpos', '-v7.3')
-    save([dirname,'DOCM_', midname, mnist_spec,'_DiffusedMNIST_3D'], 'whole_mnistCW', 'whole_homCW', 'mnist_layer_abs','mnist_layer_photons','hom_layer_photons','-v7.3')
+    save([dirname,'DOCM_', midname, mnist_spec,'_Specifications'], 'cfg', 'srcpos', '-v7.3')
+    save([dirname,'DOCM_', midname, mnist_spec,'_DiffusedMNIST_3D'],'checkboard','MNIST','whole_controlCW', 'whole_homCW', 'mnist_layer_abs','mnist_layer_photons','hom_layer_photons','-v7.3')
     disp('saved')
 
 end
-%% DISPLAY OUT IMAGE
-if DISPLAY
-    % take only slice after scattering layer
-    hom_slice = flux_hom_data(15:45,15:45,6,20:end);
-    kit_slice = flux_kitty_data(15:45,15:45,6,20:end);
-    % integrate in time
-    hom_sliceCW = double(squeeze(sum(sum(hom_slice,3),4)));
-    kit_sliceCW = double(squeeze(sum(sum(kit_slice,3),4)));
-
-    figure;imagesc(log( abs(kit_sliceCW(:, :)) +1))
-    figure;imagesc(( 1+  (kit_sliceCW(10:50, 10:50) - hom_sliceCW(10:50,10:50))./(hom_sliceCW(10:50,10:50)+1)) );
 end
-DOUBLE_DISP = 0;
-if DOUBLE_DISP
-        %imagesc(squeeze(log(flux.data(:,30,:,1)))-squeeze(log(flux.data(:,30,:,1))));
-    flux.data = flux_hom_data;
-    i_0 = flux.data(:,:,:,1); i_end =  flux.data(:,:,:,end);
-    %clims = [0.001*cfg.nphoton*size(src_pos,1), 1*cfg.nphoton*size(src_pos,1)];
-    for i=1:size(flux.data,4)
-        figure(1); imagesc((squeeze(flux.data(:,40,:, i)))'), axis image;
-        %caxis(log(clims)), 
-        title(i*cfg.tstep), drawnow, pause(0.2);
-        %figure(1); imagesc((squeeze(flux.data(:,30,:, i)))'), axis image,caxis((clims)), title(i*cfg.tstep), drawnow, pause(0.005);
-    end
-
-    [X,Y,Z] = meshgrid(1:size(cfg.vol,1),1:size(cfg.vol,2), 1:size(cfg.vol,3));
-    ff = flux.data;
-    ff = reshape(ff, [size(ff,1)*size(ff,2)*size(ff,3)], size(ff,4));
-    detplot = ( (X  - cfg.detpos(1)).^2 + (Y  - cfg.detpos(2)).^2 <= cfg.detpos(4)^2) .* (Z == cfg.detpos(3)); 
-    detplot = detplot(:);sumdet = sum(detplot);
-    for i=1:size(ff,2)
-        out(i) = sum( ff(:,i) .* detplot / sumdet);
-    end
-    figure(2);plot(squeeze(flux.data(cfg.detpos(1),cfg.detpos(2), cfg.detpos(3),:)))
-    figure(3);plot(cfg.tstart:cfg.tstep:cfg.tend-cfg.tstep,squeeze(out))
-    
-    
-    vol = cfg.vol;
-    for i=1:size(vol,3)
-        figure(1);imagesc(vol(:,:,i)), caxis([1,6]), title(i), pause()
-    end
 end
-    
-display('END OF CODE')
+
+

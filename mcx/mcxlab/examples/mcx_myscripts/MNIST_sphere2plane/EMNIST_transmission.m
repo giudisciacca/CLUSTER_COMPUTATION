@@ -60,7 +60,7 @@ for count_liquido_scatter=found_scatter
     %% Setting general parameters
     cfg.autopilot=1;
     cfg.gpuid=1;
-    cfg.nphoton = 5.5e5; 
+    %cfg.nphoton = 5.5e5; 
     nph_TOT = ph_rota(count_ph); % chosen by rota
     cfg.nphoton = 0.55 * nph_TOT;    
     cfg.tstart=0;
@@ -212,7 +212,7 @@ for count_liquido_scatter=found_scatter
 
     disp('saving')
     dirname = sprintf('/home/gdisciac/mcx_sim/DOCM_%s_ph%g_radius_inf_dist2scalp%g_liqMus%g_var%g/',...
-		midname, cfg.nphoton, SKULL2BRAIN,scattering_rota(count_liquido_scatter),perc_rota(count_perc) );
+		midname, nph_TOT, SKULL2BRAIN,scattering_rota(count_liquido_scatter),perc_rota(count_perc) );
     mnist_spec = sprintf('mnistFrom%gto%g', mnist_init, mnist_init+mnist_size);
     mkdir(dirname);
     save([dirname,'DOCM_', midname, mnist_spec,'_Specifications'], 'cfg', 'srcpos', '-v7.3')
