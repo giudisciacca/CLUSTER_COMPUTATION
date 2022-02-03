@@ -37,6 +37,7 @@ meshfact = 1;
 lavg_sca = [0.25,0.5,1,2];%,4];
 lavg_var = [0,0.20,0.50,0.80];
 %% decide sim param
+%Ilaunch = 1;
 Icompare = 1;
 for count_perc = 1:numel(lavg_var)
     for count_liquido_scatter=1:numel(lavg_sca)
@@ -53,7 +54,7 @@ end
 
 for avg_sca = found_scatter
 for avg_var = found_perc
-datasets_name = ['FEM_2021_remake_avgsca',num2str(avg_sca),'_avgvar_',num2str(avg_var),'_'];
+datasets_name = ['FEM_2021_remakerefl_avgsca',num2str(avg_sca),'_avgvar_',num2str(avg_var),'_'];
 %% define mesh and basis
 [vtx, idx, etp]  = mkslab([0,0,0; N1-1,N2-1,N3-1],[meshfact*N1,meshfact*N2,meshfact*N3]);
 global mesh
@@ -71,11 +72,6 @@ ref = ones(nnd,1) * ref_bkg;
 kappa = 1./(3*generateRandomKappa(numberK, N3,avg_sca, avg_var));
 
 %% ACTUAL_DISTR
-input = zeros(N1,N2, NUMBER_MNIST*numberK);
-diffused = zeros(N1,N2, NUMBER_MNIST*numberK);
-diffused_nohete = zeros(N1, N2, NUMBER_MNIST);
-checkboard = zeros(N1,N2,N3);
-checkboard(3:6:end,3:6:end,1) = 1;
 
 %% all random
 iii = 1;
@@ -83,14 +79,20 @@ iii = 1;
 diffused = zeros(N1,N2, NUMBER_MNIST);
 diffused_nohete = zeros(N1, N2, NUMBER_MNIST);
 kappa = 1./(3*generateRandomKappa(NUMBER_MNIST, N3, (avg_sca), avg_var));
+kappa(:,:,15:end,:) = 1./(3*4);
+mua0 = 0.01*ones(size(kappa));
+mua = mua0;
+mua(:,:,15,:) = 0.6*MNIST+0.01; 
 for i=1:NUMBER_MNIST
     disp(i)
     %kappa(:,:,i) = generateRandomKappa(numberK);
         input(:,:,i) = MNIST(:,:,i);
         input3D = zeros(N1,N2,N3);
-        input3D(:,:,1) = input(:,:,i);
-        prov_diffused(:,:) = diffuseMNIST3(kappa(:,:,:,i), input3D); 
-        prov_diffused_control(:,:) = diffuseMNIST3(kappa(:,:,:,i), checkboard);
+        input3D(:,:,1) = 1;input(:,:,i);
+         
+        
+        prov_diffused_control(:,:) = diffuseMNIST3(kappa(:,:,:,i), input3D,mua0(:,:,:,i));
+        prov_diffused(:,:) = diffuseMNIST3(kappa(:,:,:,i), input3D,mua(:,:,:,i));
         diffused(:,:,i) = prov_diffused(:,:);
         diffused_control(:,:,i) = prov_diffused_control(:,:);
         
@@ -117,20 +119,47 @@ imagesControl = imagesControl_(:,:,:,t_sam:v_sam);
 save([datasets_name,'_allRandom', '_v_t.mat'],'-v7.3','imagesInput','imagesControl','imagesDiff', 'kappa' )
 end
 end
+%% load and permute
+% direc = dir('*.mat');
+% names = {direc.name};
+% for i = 1:numel(names)
+%     clearvars -except names i
+%     load(names{i});
+%     Nr = randperm(size(imagesDiff,4));
+%     imagesInput = imagesInput(:,:,Nr);
+%     imagesDiff = imagesDiff(:,:,:,Nr);
+%     i
+%     if contains(names{i},'combOf')
+%          save(names{i},'-v7.3','imagesInput','imagesDiff', 'kappa_comb' )
+%     elseif contains(names{i}, 'from1to') 
+%         save(names{i},'-v7.3','imagesInput','imagesDiff', 'kappa_set')
+%     %else
+%     %    diffused_nohete = diffused_nohete(:,:,Nr);
+%     %    save(names{i},'-v7.3','imagesInput','imagesDiff', 'kappa_set', 'diffused_nohete' )
+% 
+%     end
+% end
+% 
+
+% basis.delete();
+% %clear basis
+% mesh.delete(); 
+% %clear mesh
+
 %% FEM Define
-function out2d = diffuseMNIST3(kappa,input)
+
+function out2d = diffuseMNIST3(kappa,input,mua)
 % takes as input kappa and mnist, returns phi over last slice
     global mesh
     global basis
     Mus = basis.Map('B->M',1/(3*kappa));
+    Mua = basis.Map('B->M',mua);
     Input = basis.Map('B->M', input);
-    L = dotSysmat2_noC(mesh,1e-7*ones(mesh.NodeCount,1),Mus,1.4*ones(mesh.NodeCount,1));
+    L = dotSysmat2_noC(mesh,Mua,Mus,1.4*ones(mesh.NodeCount,1));
     Out = L\Input;
-    %Out = abs(gather(pcg(gpuArray(L),gpuArray(Input),1e-8,200)));
     out = reshape( basis.Map('M->B', Out), size(kappa));
-    out2d = out(:,:,end);
+    out2d = out(:,:,1);
     out2d = out2d/max(out2d(:));
     %figure(1);imagesc(out2d);
 end
-
 
