@@ -560,27 +560,7 @@ folder_data = '../processed4python/multiGamma/2020remake/transmission/EXP/CBH/20
 folder_data = '/home/gdisciac/CBH/';
 commonName_train = folder_data +'';# 'EXP2021_';
 commonName_test = folder_data +'';# 'EXP2021_';
-'''
-specName_train = ['phantom1_5mm_2FT_moving_normArea',
-                  'phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea',
-                  #'phantom1_5mm_2FT_phantom2_5mm_1FT_fixed_normArea',
-                  'phantom1_5mm_1FT_phantom2_5mm_1FT_moving_normArea',
-                  'phantom1_5mm_1FT_moving_normArea'
-                  #'phantom1_5mm_1FT_phantom2_5mm_1FT_fixed_normArea',
-                  #'phantom1_5mm_1FT_fixed_normArea',
-                  #'phantom1_5mm_2FT_fixed_normArea'
-                  ]#,'fixed_normArea']
-specName_test =  [['phantom1_5mm_2FT_moving_normArea','phantom1_5mm_2FT_moving_normArea_v'],
-                  ['phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea','phantom1_5mm_2FT_phantom2_5mm_1FT_moving_normArea_v'],
-                  #['phantom1_5mm_2FT_phantom2_5mm_1FT_fixed_normArea','phantom1_5mm_2FT_phantom2_5mm_1FT_fixed_normArea_v'],
-                  ['phantom1_5mm_1FT_phantom2_5mm_1FT_moving_normArea','phantom1_5mm_1FT_phantom2_5mm_1FT_moving_normArea_v'],
-                  ['phantom1_5mm_1FT_moving_normArea','phantom1_5mm_1FT_moving_normArea_v']
-                  #['phantom1_5mm_1FT_phantom2_5mm_1FT_fixed_normArea','phantom1_5mm_1FT_phantom2_5mm_1FT_fixed_normArea_v'],
-                  #['phantom1_5mm_1FT_fixed_normArea','phantom1_5mm_1FT_fixed_normArea_v'],
 
-                  #['phantom1_5mm_2FT_fixed_normArea', 'phantom1_5mm_2FT_fixed_normArea_v']
-                  ];
-'''
 
 specName_train = [ sys.argv[3] ]
 specName_test = [ [sys.argv[3], sys.argv[3]+'_v']];

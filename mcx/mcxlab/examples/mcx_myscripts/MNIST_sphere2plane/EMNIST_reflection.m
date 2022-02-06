@@ -59,13 +59,13 @@ for count_liquido_scatter=found_scatter
     quantum = 1;
     surface_3n = [1e-2 1 0.89 1.37;];
     high_scatter = [1e-2 4 0 1.37];
-    high_abs = [0.6 3  0 1.37];
+    high_abs = [0.6 4  0 1.37];
     %% Setting general parameters
     cfg.autopilot=1;
     cfg.gpuid=1;
     %cfg.nphoton = 5.5e5; 
     nph_TOT = ph_rota(count_ph); % chosen by rota
-    cfg.nphoton = 1e8;%min(15*nph_TOT,5e8);    
+    cfg.nphoton = 4e7;%min(15*nph_TOT,5e8);    
     cfg.tstart=0;
     cfg.tend=6e-9;
     cfg.tstep=1e-11;
@@ -80,7 +80,7 @@ for count_liquido_scatter=found_scatter
             cfg.detpos=cat(1,cfg.detpos,[i,j,2, 0.5]);
         end
     end
-    cfg.maxdetphoton = min(cfg.nphoton,1e8);
+    cfg.maxdetphoton =02e7; min(0.2*cfg.nphoton,2e7);
     cfg.savedetflag = 'd';
     srcpos = [0, 0, 1];
     N_src = 1;
@@ -179,13 +179,15 @@ for count_liquido_scatter=found_scatter
                 nphdet = 0;
                 kit_cfg = cfg;
                 cfg.vol(:,:,SKULL2BRAIN) = cfg.vol(:,:,SKULL2BRAIN) + mnist_layer;
+
                 while abs(nphdet) <  nph_TOT
                     
                 kit_cfg.seed = randi(10000);
                 evalc('[flux_control,det] = mcxlab(kit_cfg);');
                 flux_control_data = flux_control_data + flux_control.data;
                 nphdet = nphdet + numel(det.detid)*((2/sqrt(pi))^2);                   
-                    
+               	fprintf('%g ', numel(det.detid))
+     
                 whole_controlCW0(:,:,:) = sum(flux_control_data(:,:,:,:),4);
                 control_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_controlCW0, NZ, 1e20);
                 whole_controlCW(:,:,1:NZ,i_src, i_mnist) = sum(flux_control_data(:,:,1:NZ,:),4);                
@@ -199,7 +201,8 @@ for count_liquido_scatter=found_scatter
                 evalc('[flux_hom, det] = mcxlab(cfg);');
                 flux_hom_data = flux_hom_data + flux_hom.data;
                 nphdet = nphdet - numel(det.detid)*((2/sqrt(pi))^2);
-                                
+                fprintf('%g ', numel(det.detid))
+
                 fprintf('%g ', nphdet)
                 whole_homCW0(:,:,:) = sum(flux_hom_data(:,:,:,:),4); 
                 hom_layer_photons(:,:,i_src, i_mnist) = simple_project_sph2pl(idx_sphere_in, whole_homCW0, NZ, 1e20);

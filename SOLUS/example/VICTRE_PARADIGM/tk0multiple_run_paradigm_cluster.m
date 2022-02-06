@@ -10,7 +10,8 @@ end
 FIT_STR = 'MeanFitted';
 sumFailed = 0;
 for isim = i0
-    for imethod = {{'tk0',''},{'usprior',''},{'usprior','DT_'}}%{{'fit4param',''},{'fit4param','DT_'}}%{'usprior','DT_'},{'usprior',''} }% {{'fit4param',''},{'components_fit',''}}%,{'usprior','DT'}'}
+    for imethod = {{'usprior',''}}%,{'usprior',''},{'usprior','DT_'}}%{{'fit4param',''},{'fit4param','DT_'}}%{'usprior','DT_'},{'usprior',''} }% {{'fit4param',''},{'components_fit',''}}%,{'usprior','DT'}'}
+	gpuDevice(1);
 TWstr = '20';
         % down
         if contains(imethod{1}{1},'tk0')

@@ -26,7 +26,7 @@ end
     
 N1 = 60;
 N2 = 60;
-N3 = 30;
+N3 = 15;
 numberK = 1;
 train_num = 800;
 t_sam = 1000;
@@ -53,7 +53,7 @@ end
 
 for avg_sca = found_scatter
 for avg_var = found_perc
-datasets_name = ['FEM_2021_remake_avgsca',num2str(avg_sca),'_avgvar_',num2str(avg_var),'_'];
+datasets_name = ['FEM_2021_15mmremake_avgsca',num2str(avg_sca),'_avgvar_',num2str(avg_var),'_'];
 %% define mesh and basis
 [vtx, idx, etp]  = mkslab([0,0,0; N1-1,N2-1,N3-1],[meshfact*N1,meshfact*N2,meshfact*N3]);
 global mesh
