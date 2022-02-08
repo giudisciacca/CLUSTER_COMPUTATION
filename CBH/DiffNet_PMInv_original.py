@@ -300,7 +300,7 @@ def diffLayer(x_in, bSize, N, layNum):
         x_update = x_update + assembleXupdate2D(x_update, kappa[:, :, :, 0:9], dt, order_step)#+ tf.multiply(dt,tf.reshape(kappa[:, :, :, 9], [bSize, N,N,1]));
         x_out = tf.concat([x_out, x_update], axis=3)
 
-    return x_out, kappa, Kappa
+    return tf.nn.relu(x_out), kappa, Kappa
 
 
 def assembleXupdate2D(x_update, kappa, dt, order):
@@ -347,7 +347,7 @@ def getKappa(inVal,shape,varName):
 
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(5)
-    maxIter = int(50000)#32000
+    maxIter = int(80000)#32000
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None]*len(dataSetTest);
@@ -389,8 +389,8 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             x_update, kappaEst4, Kappa4 = diffLayer(x_update, bSize, N, 13 + 100 * iii)
             x_update, kappaEst5, Kappa5 = diffLayer(x_update, bSize, N, 14 + 100 * iii)
             '''
-        Kappa_ = tf.concat(Kappa_,0)
-        x_ = tf.concat(x_,0)
+        Kappa_ = tf.stack(Kappa_,axis=0)
+        x_ = tf.stack(x_,axis=0)
         x_update = tf.reshape(x_update, [bSize, N, N, chan])
         x_sum = x_update[:, :, :, 0]
         for ccc in range(chan - 1 ):
@@ -525,9 +525,12 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             feed_test = {imag: dataDbar[i_dataset].test.images[i_final:i_final+bSize],
                          true: dataDbar[i_dataset].test.true[i_final:i_final+bSize], learningRate:lVal}
             test_result, KappaArray, XArray = sess.run([ y_diff, Kappa_,x_], feed_dict=feed_test)
+            XArray =np.swapaxes(XArray,1,0)
+            KappaArray = np.swapaxes(KappaArray,1,0)
+            print(KappaArray.shape)
             result[i_final:i_final+bSize] = test_result[0:];
-            resultK[i_final:i_final+bSize] = KappaArray[0];
-            resultX[i_final:i_final+bSize] = XArray[0];        
+            resultK[i_final:i_final+bSize] = KappaArray[0:];
+            resultX[i_final:i_final+bSize] = XArray[0:];        
             #print(KappaArray[0:])
             
 
@@ -594,4 +597,5 @@ for j_proc in range(0, len(specName_train)):
     p.start()
     p.join()
     p.terminate()
+
 

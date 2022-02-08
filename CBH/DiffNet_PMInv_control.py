@@ -403,7 +403,7 @@ def diffLayer_control(x_in, x_control ,bSize, N, layNum):
         x_out_control = tf.concat([x_out_control, x_update_control], axis=3)
 
 
-    return x_out, x_out_control, kappa, Kappa
+    return tf.nn.relu(x_out), tf.nn.relu(x_out_control), kappa, Kappa
 
 def assembleXupdate2D(x_update, kappa, dt, order):
     x_out = tf.zeros_like(x_update);
@@ -446,7 +446,7 @@ def getKappa(inVal, shape, varName):
 
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(5)
-    maxIter = int(50000)
+    maxIter = int(80000)
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None] * len(dataSetTest);
@@ -490,6 +490,9 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             x_update, kappaEst4, Kappa4 = diffLayer(x_update, bSize, N, 13 + 100 * iii)
             x_update, kappaEst5, Kappa5 = diffLayer(x_update, bSize, N, 14 + 100 * iii)
             '''
+        Kappa_ = tf.stack(Kappa_,axis=0)
+        x_ = tf.stack(x_,axis=0)
+
         x_update = tf.reshape(x_update, [bSize, N, N, chan])
         x_sum = x_update[:, :, :, 0]
         for ccc in range(chan - 1):
@@ -621,9 +624,12 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
                          contr: dataDbar[i_dataset].test.controls[i_final:i_final + bSize],learningRate: lVal}
             #test_result, KappaArray = sess.run([y_diff, Kappa], feed_dict=feed_test)
             test_result, KappaArray, XArray = sess.run([ y_diff, Kappa_,x_], feed_dict=feed_test)
+            XArray =np.swapaxes(XArray,1,0)
+            KappaArray = np.swapaxes(KappaArray,1,0)
+
             result[i_final:i_final + bSize] = test_result[0:];
-            resultK[i_final:i_final + bSize] = KappaArray[0];
-            resultX[i_final:i_final+bSize] = XArray[0];
+            resultK[i_final:i_final + bSize] = KappaArray[0:];
+            resultX[i_final:i_final+bSize] = XArray[0:];
         dict_sio = {
             'Input': dataDbar[i_dataset].test.images[:, :, :, :],
             'True': dataDbar[i_dataset].test.true[:, :, :, :],

@@ -315,7 +315,7 @@ def diffLayer(x_in, bSize, N, layNum):
                                                 order_step, str_Knature=Knature)  # + tf.multiply(dt,tf.reshape(kappa[:, :, :, 9], [bSize, N,N,1]));
         x_out = tf.concat([x_out, x_update], axis=3)
 
-    return x_out, kappa, Kappa
+    return tf.nn.relu(x_out), kappa, Kappa
 
 
 def assembleXupdate2D(x_update, kappa, dt, order, str_Knature='tensorial'):
@@ -388,7 +388,7 @@ def getKappa(inVal, shape, varName):
 
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(1)
-    maxIter = int(50000)
+    maxIter = int(80000)
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None] * len(dataSetTest);
