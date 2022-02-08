@@ -309,7 +309,7 @@ def assembleXupdate2D(x_update, kappa, dt, order):
     count_k = 0;
     for i in range(-1, 2):
         for j in range(-1, 2):
-            x_out = x_out + tf.multiply(tf.reshape(tf.multiply(tf.constant(signArray[i+1,j+1]),tf.nn.relu(kappa[:,:,:,count_k])), [bSize, N,N,1]),
+            x_out = x_out + tf.multiply(tf.reshape(tf.multiply(tf.constant(signArray[i+1,j+1],dtype=tf.float32),tf.nn.relu(kappa[:,:,:,count_k])), [bSize, N,N,1]),
                                         shiftX(x_update, i, j));
             count_k = count_k + 1;
     x_out_mult = tf.multiply(dt, x_out);
