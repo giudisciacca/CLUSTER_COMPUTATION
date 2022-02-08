@@ -407,6 +407,25 @@ def diffLayer_control(x_in, x_control ,bSize, N, layNum):
 
 def assembleXupdate2D(x_update, kappa, dt, order):
     x_out = tf.zeros_like(x_update);
+    signArray =	np.array([[-1.0, 1.0, 1.0],[1.0,-1.0,1.0],[1.0,1.0,-1.0]]);
+    count_k = 0;
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            x_out = x_out + tf.multiply(tf.reshape(tf.multiply(tf.constant(signArray[i+1,j+1]),tf.nn.relu(kappa[:,:,:,count_k])), [bSize, N,N,1]),
+                                        shiftX(x_update, i, j));
+            count_k = count_k + 1;
+    x_out_mult = tf.multiply(dt, x_out);
+
+    if order == 1:
+        return x_out_mult
+    else:
+	return x_out_mult + assembleXupdate2D(x_out_mult, kappa, dt, order - 1)
+
+
+
+
+def assembleXupdate2D_old(x_update, kappa, dt, order):
+    x_out = tf.zeros_like(x_update);
     count_k = 0;
     for i in range(-1, 2):
         for j in range(-1, 2):
