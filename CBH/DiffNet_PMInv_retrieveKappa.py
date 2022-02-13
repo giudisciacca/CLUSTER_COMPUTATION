@@ -23,6 +23,12 @@ from random import randint
 import multiprocessing
 import time
 
+from numpy.random import seed
+from tensorflow import set_random_seed
+seed(0)
+set_random_seed(0)
+
+
 print('pausing')
 time.sleep(3600 * 0)
 print('resuming')
@@ -302,7 +308,7 @@ def diffLayer(x_in, bSize, N, layNum):
         kappa = kappa + (conv2d(kappaEst, W_out) + b_out)
         Kappa.append(kappa[:, :, :, 0:out_chan]);
 
-
+    dt = 0.1*(tf.constant(-1.0,dtype=tf.float32)-tf.nn.elu(dt))
     x_update = x_update - tf.multiply(dt,tf.multiply(tf.reshape(kappa[:,:,:,-1],[bSize,N,N,1]),x_update))+assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan-1], dt,
                                             order_step, str_Knature=Knature)
     x_out = tf.reshape(x_update, [bSize, N, N, 1])
@@ -311,8 +317,9 @@ def diffLayer(x_in, bSize, N, layNum):
         x_update = x_full[:, :, :, xi + 1]
         x_update = tf.reshape(x_update, [bSize, N, N, 1])
         # update for all channels with same kappa found before
-        x_update = x_update +tf.multiply(tf.reshape(kappa[:,:,:,-1],[bSize,N,N,1]),x_update)+ assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan], dt,
-                                                order_step, str_Knature=Knature)  # + tf.multiply(dt,tf.reshape(kappa[:, :, :, 9], [bSize, N,N,1]));
+        x_update = x_update - tf.multiply(dt,tf.multiply(tf.reshape(kappa[:,:,:,-1],[bSize,N,N,1]),x_update))+assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan-1], dt,
+                                            order_step, str_Knature=Knature)
+
         x_out = tf.concat([x_out, x_update], axis=3)
 
     return tf.nn.relu(x_out), kappa, Kappa
@@ -320,6 +327,13 @@ def diffLayer(x_in, bSize, N, layNum):
 
 def assembleXupdate2D(x_update, kappa, dt, order, str_Knature='tensorial'):
     x_out = tf.zeros_like(x_update);
+    #kappa = tf.constant(1.0,dtype=tf.float32) + tf.nn.elu(kappa +  tf.constant(- 3.0,dtype=tf.float32)   )
+    kappa = tf.constant(1.0,dtype=tf.float32)+tf.nn.elu(tf.constant(0.0,dtype=tf.float32)+kappa)
+    #kappa = tf.abs(kappa);
+    signArray = np.array([[-0.25, 1.0, 0.25],[1.0,-4.0,1.0],[0.25,1.0,-0.25]]);
+    #dt = tf.constant(-1.0,dtype=tf.float32)-tf.nn.elu(dt)
+    #kappa = tf.sigmoid(kappa);
+
     count_k = 0;
     if str_Knature=='tensorial':
         multK = [None]*9
@@ -388,7 +402,7 @@ def getKappa(inVal, shape, varName):
 
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(1)
-    maxIter = int(80000)
+    maxIter = int(30000)
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None] * len(dataSetTest);
@@ -476,6 +490,11 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     startIt = 0
     error_val_old = 1.2;
     for i in range(maxIter):
+
+        if (i % 5000 == 0 ) & (i >0):
+            lVal = 0.6*lVal
+
+
 
         batch = dataDbar[0].train.next_batch(bSize)
         #      test1 = batch[0]

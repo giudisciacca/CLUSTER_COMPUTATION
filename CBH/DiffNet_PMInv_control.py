@@ -1,4 +1,4 @@
-!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jun 18 11:52:42 2019
@@ -17,17 +17,22 @@ import numpy as np
 import utilTemp_nonlinInv_mult as util
 import os
 
-#os.environ['CUDA_VISIBLE_DEVICES'] = '0';
 import scipy.io as sio  # %ok- 1
 from random import randint
-# from numba import cuda
 import multiprocessing
 import time
+
+from numpy.random import seed
+from tensorflow import set_random_seed
+seed(0)
+set_random_seed(0)
+
+
+
 
 print('pausing')
 time.sleep(3600 * 0)
 print('resuming')
-# import matplotlib.pyplot as plt
 
 FLAGS = None
 Knature = sys.argv[1];
@@ -370,7 +375,7 @@ def diffLayer_control(x_in, x_control ,bSize, N, layNum):
         kappaEst = tf.nn.elu(d_conv2d(kappaEst, W_dconvL1, kappaEst_d1.get_shape()) + kappaEst_d1);
         #        kappaEst=tf.contrib.layers.conv2d(kappaEst,5,3,activation_fn=None)
         W_out = weight_variable([width, width, chans_in, 9], 'Wout' + str(layNum))
-        b_out = bias_variable([9])
+        Wb_out = bias_variable([9])
         kappa = tf.tile(weight_variable([1, N, N, 9], 'Wfix' + str(layNum)), [bSize, 1, 1, 1]);
         if Knature == 'Linear':
             kappa = kappa;
@@ -378,6 +383,8 @@ def diffLayer_control(x_in, x_control ,bSize, N, layNum):
             kappa = kappa + (conv2d(kappaEst, W_out) + b_out)
 
         Kappa.append(kappa[:, :, :, 0:9]);
+
+    dt = 0.1*(tf.constant(-1.0,dtype=tf.float32)-tf.nn.elu(dt))
 
     x_update = x_update + assembleXupdate2D(x_update, kappa[:, :, :, 0:9], dt,
                                             order_step)  # + tf.multiply(dt,tf.reshape(kappa[:, :, :, 9], [bSize, N,N,1]));
@@ -407,11 +414,17 @@ def diffLayer_control(x_in, x_control ,bSize, N, layNum):
 
 def assembleXupdate2D(x_update, kappa, dt, order):
     x_out = tf.zeros_like(x_update);
-    signArray =	np.array([[-1.0, 1.0, 1.0],[1.0,-1.0,1.0],[1.0,1.0,-1.0]]);
+    signArray = np.array([[-0.25, 1.0, 0.25],[1.0,-4.0,1.0],[0.25,1.0,-0.25]]);
+    #dt = tf.constant(-1.0,dtype=tf.float32)-tf.nn.elu(dt)
+
+    kappa = tf.constant(1.0,dtype=tf.float32)+tf.nn.elu(tf.constant(0.0,dtype=tf.float32)+kappa)
+    #kappa = tf.abs(kappa);
+    #kappa = tf.sigmoid(kappa);
+
     count_k = 0;
     for i in range(-1, 2):
         for j in range(-1, 2):
-            x_out = x_out + tf.multiply(tf.reshape(tf.multiply(tf.constant(signArray[i+1,j+1],dtype=tf.float32),tf.nn.relu(kappa[:,:,:,count_k])), [bSize, N,N,1]),
+            x_out = x_out + tf.multiply(tf.reshape(tf.multiply(tf.constant(signArray[i+1,j+1],dtype=tf.float32),kappa[:,:,:,count_k]), [bSize, N,N,1]),
                                         shiftX(x_update, i, j));
             count_k = count_k + 1;
     x_out_mult = tf.multiply(dt, x_out);
@@ -419,7 +432,7 @@ def assembleXupdate2D(x_update, kappa, dt, order):
     if order == 1:
         return x_out_mult
     else:
-	return x_out_mult + assembleXupdate2D(x_out_mult, kappa, dt, order - 1)
+        return x_out_mult + assembleXupdate2D(x_out_mult, kappa, dt, order - 1)
 
 
 
@@ -465,7 +478,7 @@ def getKappa(inVal, shape, varName):
 
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(5)
-    maxIter = int(80000)
+    maxIter = int(30000)
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None] * len(dataSetTest);
@@ -574,6 +587,11 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     startIt = 0
     error_val_old = 1;
     for i in range(maxIter):
+
+        if (i % 5000 == 0 ) & (i >0):
+            lVal = 0.6*lVal
+
+
 
         batch = dataDbar[0].train.next_batch(bSize)
         #      test1 = batch[0]
