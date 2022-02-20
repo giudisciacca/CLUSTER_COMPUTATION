@@ -45,6 +45,12 @@ bSize = int(1)
 chan = int(1)
 
 N = int(60)
+if sys.argv[4]=='EXP':
+    tmpname = '/home/gdisciac/CBH/' + sys.argv[3]+'.mat'
+    N = int(loadDiff.extract_images(tmpname,'imagesDiff').shape[1])
+    
+
+
 NN = N * N
 
 zero = tf.constant(0.0, shape=[bSize, 1])
@@ -375,16 +381,17 @@ def diffLayer_control(x_in, x_control ,bSize, N, layNum):
         kappaEst = tf.nn.elu(d_conv2d(kappaEst, W_dconvL1, kappaEst_d1.get_shape()) + kappaEst_d1);
         #        kappaEst=tf.contrib.layers.conv2d(kappaEst,5,3,activation_fn=None)
         W_out = weight_variable([width, width, chans_in, 9], 'Wout' + str(layNum))
-        Wb_out = bias_variable([9])
+        b_out = bias_variable([9])
         kappa = tf.tile(weight_variable([1, N, N, 9], 'Wfix' + str(layNum)), [bSize, 1, 1, 1]);
-        if Knature == 'Linear':
+
+        if Knature=='Linear':
             kappa = kappa;
         else:
-            kappa = kappa + (conv2d(kappaEst, W_out) + b_out)
+            kappa =kappa + (conv2d( kappaEst, W_out) + b_out)
 
         Kappa.append(kappa[:, :, :, 0:9]);
+    dt = 0.05*(tf.constant(-1.0,dtype=tf.float32)-tf.nn.elu(dt))
 
-    dt = 0.1*(tf.constant(-1.0,dtype=tf.float32)-tf.nn.elu(dt))
 
     x_update = x_update + assembleXupdate2D(x_update, kappa[:, :, :, 0:9], dt,
                                             order_step)  # + tf.multiply(dt,tf.reshape(kappa[:, :, :, 9], [bSize, N,N,1]));
@@ -479,6 +486,10 @@ def getKappa(inVal, shape, varName):
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(5)
     maxIter = int(30000)
+    LTRAIN = []
+    LVALID = []
+    LSTEP = []
+    
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None] * len(dataSetTest);
@@ -498,11 +509,13 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         rl = 0;
         Kappa_ = [] #None*[iterMain]
         x_ = []
+        xc_ =[]
         for iii in range(iterMain):
-            x_update,x_control, kappaEst1, Kappa[iii] = diffLayer_control(x_update,x_control , bSize, N, iii + 100 * iii)
-            rl = rl + (1 / (iterMain - iii)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
+            x_update,x_control, kappaEst1, _ = diffLayer_control(x_update,x_control , bSize, N, iii + 100 * iii)
+            rl = rl + (1.0 / (iii+1)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
                 tf.nn.relu(true))
             x_.append(tf.expand_dims(tf.reshape(x_update,[bSize,N,N,chan]),axis=0))
+            xc_.append(tf.expand_dims(tf.reshape(x_control,[bSize,N,N,chan]),axis=0))
             Kappa_.append(tf.expand_dims(tf.reshape(kappaEst1,[bSize,N,N,9]),axis=0))
             '''
             x_update, kappaEst2, Kappa2 = diffLayer(x_update, bSize, N, 1 + 100 * iii)
@@ -524,7 +537,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             '''
         Kappa_ = tf.stack(Kappa_,axis=0)
         x_ = tf.stack(x_,axis=0)
-
+        xc_ = tf.stack(xc_,axis=0)
         x_update = tf.reshape(x_update, [bSize, N, N, chan])
         x_sum = x_update[:, :, :, 0]
         for ccc in range(chan - 1):
@@ -540,7 +553,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         rel_loss = tf.norm(tf.subtract(tf.nn.relu(true), y_diff)) / tf.norm(tf.nn.relu(true))
         ssim = tf.reduce_mean(tf.image.ssim(tf.nn.relu(true), y_diff, max_val=1.0))
         all_weights = tf.trainable_variables()
-        regularizer = 0.0 * rl;  # 0.000 * tf.add_n( [ tf.nn.l2_loss(v_weights) for v_weights in all_weights] );
+        regularizer = 0.05 * rl;  # 0.000 * tf.add_n( [ tf.nn.l2_loss(v_weights) for v_weights in all_weights] );
         # regularizer = tf.nn.l2_loss(
         #         tf.image.total_variation(tf.reshape(y_diff,[bSize,N,N,1])) / (bSize* N*N));
 
@@ -607,6 +620,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         if i % 20 == 0:
             # train_accuracy = accuracy.eval(feed_dict={imag: dataDbar.test.images[0:16], true: dataDbar.test.true[0:16]})
             # testPosit = testPos.eval(feed_dict={imag: dataDbar.test.images[0:16], true: dataDbar.test.true[0:16]})
+            tRand = dataDbar[0].test.images.shape[0]-bSize-1;
             tBeg = randint(0, tRand)
             tEnd = tBeg + bSize
             it = i + startIt
@@ -628,6 +642,10 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
 
                 print('iter={}, loss={}, rel.loss.test={}, rel.loss.train={}'.format(i, loss_result, rel_loss_res,
                                                                                      loss_result_train))
+       	       	if i_test == 0:
+       	       	    LTRAIN.append(loss_result_train)
+       	       	    LVALID.append(rel_loss_res)
+       	       	    LSTEP.append(i)
 
             # run for all samples
 
@@ -654,25 +672,34 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         result = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
         resultK = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
         resultX = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
+        resultXC = [None] * (np.shape(dataDbar[i_dataset].test.images)[0])
+
         for i_final in range(0, np.shape(dataDbar[i_dataset].test.images)[0] - bSize + 1):
             print(i_final)
             feed_test = {imag: dataDbar[i_dataset].test.images[i_final:i_final + bSize],
                          true: dataDbar[i_dataset].test.true[i_final:i_final + bSize],
                          contr: dataDbar[i_dataset].test.controls[i_final:i_final + bSize],learningRate: lVal}
             #test_result, KappaArray = sess.run([y_diff, Kappa], feed_dict=feed_test)
-            test_result, KappaArray, XArray = sess.run([ y_diff, Kappa_,x_], feed_dict=feed_test)
+            test_result, KappaArray, XArray,XCArray = sess.run([ y_diff, Kappa_,x_,xc_], feed_dict=feed_test)
             XArray =np.swapaxes(XArray,1,0)
+            XCArray =np.swapaxes(XCArray,1,0)
             KappaArray = np.swapaxes(KappaArray,1,0)
 
             result[i_final:i_final + bSize] = test_result[0:];
             resultK[i_final:i_final + bSize] = KappaArray[0:];
             resultX[i_final:i_final+bSize] = XArray[0:];
+            resultXC[i_final:i_final+bSize] = XCArray[0:];
         dict_sio = {
             'Input': dataDbar[i_dataset].test.images[:, :, :, :],
             'True': dataDbar[i_dataset].test.true[:, :, :, :],
             'Result': np.array(result),
             'ResultK': np.array(resultK),
-            'x':np.array(resultX)            
+            'x':np.array(resultX),
+            'xc':np.array(resultXC),
+            'InputControl':dataDbar[i_dataset].test.controls[:, :, :, :],
+       	    'Ltrain':np.array(LTRAIN),
+       	    'Lvalid':np.array(LVALID),
+       	    'Lstep': np.array(LSTEP)            
         }
         # print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)

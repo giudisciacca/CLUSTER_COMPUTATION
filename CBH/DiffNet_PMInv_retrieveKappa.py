@@ -48,6 +48,13 @@ chan = int(1)
 
 N = int(60)
 NN = N * N
+if sys.argv[3]=='EXP':
+    tmpname = '/home/gdisciac/CBH/' + sys.argv[2]+'.mat'
+    N = int(loadDiff.extract_images(tmpname,'imagesDiff').shape[1])
+    
+
+
+
 Knature ='tensorial';#'tensorial'#sys.argv[1];#'scalar';#'tensorial';#
 print('KNATURE IS SET TO ' + Knature)
 zero = tf.constant(0.0, shape=[bSize, 1])
@@ -308,7 +315,7 @@ def diffLayer(x_in, bSize, N, layNum):
         kappa = kappa + (conv2d(kappaEst, W_out) + b_out)
         Kappa.append(kappa[:, :, :, 0:out_chan]);
 
-    dt = 0.1*(tf.constant(-1.0,dtype=tf.float32)-tf.nn.elu(dt))
+    dt = 0.05*(tf.constant(-1.0,dtype=tf.float32)-tf.nn.elu(dt))
     x_update = x_update - tf.multiply(dt,tf.multiply(tf.reshape(kappa[:,:,:,-1],[bSize,N,N,1]),x_update))+assembleXupdate2D(x_update, kappa[:, :, :, 0:out_chan-1], dt,
                                             order_step, str_Knature=Knature)
     x_out = tf.reshape(x_update, [bSize, N, N, 1])
@@ -403,6 +410,10 @@ def getKappa(inVal, shape, varName):
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(1)
     maxIter = int(30000)
+    LTRAIN = []
+    LVALID = []
+    LSTEP = []
+
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None] * len(dataSetTest);
@@ -414,19 +425,35 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     imag = tf.placeholder(tf.float32, [bSize, imSize[1], imSize[2], chan])
     true = tf.placeholder(tf.float32, [bSize, imSize[1], imSize[2], 1])
     x_update = tf.zeros_like(imag);
+    
     with tf.name_scope('DiffNet'):
         x_update = (tf.reshape(imag, [bSize, N, N, chan]))
         iii = 0;
+        rl = 0;
         for iii in range(iterMain):
             x_update, kappaEst1, Kappa1 = diffLayer(x_update, bSize, N, 0 + 100 * iii)
+            rl = rl + (1.0 / (5)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
+                tf.nn.relu(true))
             Lay1 = tf.identity(x_update);
+
             x_update, kappaEst2, Kappa2 = diffLayer(x_update, bSize, N, 1 + 100 * iii)
+            rl = rl + (1.0 / (4)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
+                tf.nn.relu(true))
             Lay2 = tf.identity(x_update);
+
             x_update, kappaEst3, Kappa3 = diffLayer(x_update, bSize, N, 2 + 100 * iii)
+            rl = rl + (1.0 / (3)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
+                tf.nn.relu(true))
             Lay3 = tf.identity(x_update);
+            
             x_update, kappaEst4, Kappa4 = diffLayer(x_update, bSize, N, 3 + 100 * iii)
+            rl = rl + (1.0 / (2)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
+                tf.nn.relu(true))
             Lay4 = tf.identity(x_update);
+            
             x_update, kappaEst5, Kappa5 = diffLayer(x_update, bSize, N, 4 + 100 * iii)
+            rl = rl + (1.0 / (1)) * tf.norm(tf.subtract(tf.nn.relu(true), ((x_update)))) / tf.norm(
+                tf.nn.relu(true))
             Lay5 = tf.identity(x_update);
 
         x_update = tf.reshape(x_update, [bSize, N, N, chan])
@@ -443,6 +470,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         loss = tf.norm(tf.subtract(tf.nn.relu(true), y_diff)) / float(bSize)
         rel_loss = tf.norm(tf.subtract(tf.nn.relu(true), y_diff)) / tf.norm(tf.nn.relu(true))
         ssim = tf.reduce_mean(tf.image.ssim(tf.nn.relu(true), y_diff, max_val=1.0))
+        regu = 0.05*rl;
         all_weights = tf.trainable_variables()
         regularizer = 0.000 * tf.add_n([tf.nn.l2_loss(v_weights) for v_weights in all_weights]);
         # regularizer = tf.nn.l2_loss(
@@ -478,7 +506,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         merged_summary = tf.summary.merge_all()
     with tf.name_scope('training'):
         learningRate = tf.constant(1e-3)
-        train_step = tf.train.AdamOptimizer(learningRate).minimize(rel_loss + regularizer)
+        train_step = tf.train.AdamOptimizer(learningRate).minimize(rel_loss + regu)
         # train_step = tf.train.AdamOptimizer(learningRate).minimize(- tf.log(ssim + 1) + regularizer)
 
     sess.run(tf.global_variables_initializer())
@@ -510,6 +538,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         if i % 20 == 0:
             # train_accuracy = accuracy.eval(feed_dict={imag: dataDbar.test.images[0:16], true: dataDbar.test.true[0:16]})
             # testPosit = testPos.eval(feed_dict={imag: dataDbar.test.images[0:16], true: dataDbar.test.true[0:16]})
+            tRand = dataDbar[0].test.images.shape[0]-bSize-1;
             tBeg = randint(0, tRand)
             tEnd = tBeg + bSize
             it = i + startIt
@@ -529,6 +558,10 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
 
                 print('iter={}, loss={}, rel.loss.test={}, rel.loss.train={}'.format(i, loss_result, rel_loss_res,
                                                                                      loss_result_train))
+       	       	if i_test == 0:
+       	       	    LTRAIN.append(loss_result_train)
+       	       	    LVALID.append(rel_loss_res)
+       	       	    LSTEP.append(i)
 
             if i > 400:
                 # check mean validation error
@@ -597,6 +630,9 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
             'l3': outL3,
             'l4': outL4,
             'l5': outL5,
+       	    'Ltrain':np.array(LTRAIN),
+       	    'Lvalid':np.array(LVALID),
+       	    'Lstep': np.array(LSTEP)
         }
         # print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)

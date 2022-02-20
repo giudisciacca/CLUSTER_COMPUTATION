@@ -39,8 +39,19 @@ os.system('mkdir -p ' + name.replace('/home','/scratch0') )
 bSize = int(1)
 chan = int(1)
 
+
 N = int(60)
+if sys.argv[3]=='EXP':
+    tmpname = '/home/gdisciac/CBH/' + sys.argv[2]+'.mat'
+    N = int(loadDiff.extract_images(tmpname,'imagesDiff').shape[1])
+    
+
+
+
+
 NN = N * N
+
+
 
 zero = tf.constant(0.0, shape=[bSize, 1])
 zeroNHorz = tf.constant(0.0, shape=[bSize, N, 1, 1])
@@ -302,6 +313,10 @@ def getKappa(inVal, shape, varName):
 def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
     iterMain = int(1)
     maxIter = int(50000)
+    LTRAIN = []
+    LVALID = []
+    LSTEP = []
+
     print('--------------------> DiffNet Init <--------------------')
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     dataDbar = [None] * len(dataSetTest);
@@ -382,6 +397,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         if i % 20 == 0:
             # train_accuracy = accuracy.eval(feed_dict={imag: dataDbar.test.images[0:16], true: dataDbar.test.true[0:16]})
             # testPosit = testPos.eval(feed_dict={imag: dataDbar.test.images[0:16], true: dataDbar.test.true[0:16]})
+            tRand = dataDbar[0].test.images.shape[0]-bSize-1;
             tBeg = randint(0, tRand)
             tEnd = tBeg + bSize
             it = i + startIt
@@ -401,6 +417,12 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
 
                 print('iter={}, loss={}, rel.loss.test={}, rel.loss.train={}'.format(i, loss_result, rel_loss_res,
                                                                                      loss_result_train))
+       	       	if i_test == 0:
+       	       	    LTRAIN.append(loss_result_train)
+       	       	    LVALID.append(rel_loss_res)
+       	       	    LSTEP.append(i)
+
+
             if i > 400:
                 # check mean validation error
                 i_dataset = 1;
@@ -431,7 +453,10 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         dict_sio = {
             'Input': dataDbar[i_dataset].test.images[:, :, :, :],
             'True': dataDbar[i_dataset].test.true[:, :, :, :],
-            'Result': result
+            'Result': result,
+       	    'Ltrain':np.array(LTRAIN),
+       	    'Lvalid':np.array(LVALID),
+       	    'Lstep': np.array(LSTEP)
         }
         # print(MatOutName[i_dataset]);
         sio.savemat(MatOutName[i_dataset], dict_sio)
