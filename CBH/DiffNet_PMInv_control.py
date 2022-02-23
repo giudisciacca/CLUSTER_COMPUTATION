@@ -545,7 +545,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         x_sum = tf.reshape(x_sum, [bSize, N, N, 1]) / chan
         # y_diff = (tf.nn.relu(tf.nn.tanh(x_sum)));
         b_outo = bias_variable([1])
-        y_diff = tf.reshape((tf.nn.relu(x_sum + b_outo)), [bSize, N, N, 1]);
+        y_diff = tf.reshape((tf.nn.sigmoid(x_sum + b_outo)), [bSize, N, N, 1]);
     saver = tf.train.Saver()
 
     with tf.name_scope('optimizer'):

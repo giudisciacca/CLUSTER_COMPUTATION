@@ -335,7 +335,7 @@ def main(filePath, fileOutName, dataSetTrain, dataSetTest, tRand, MatOutName):
         for ccc in range(chan - 1):
             x_sum = x_sum + x_update[:, :, :, ccc + 1]
         x_sum = x_sum / chan
-        y_diff = tf.reshape(x_sum, [bSize, N, N, 1] );# tf.nn.relu(tf.nn.tanh(x_sum));
+        y_diff = tf.nn.sigmoid(tf.reshape(x_sum, [bSize, N, N, 1] ));# tf.nn.relu(tf.nn.tanh(x_sum));
 
     saver = tf.train.Saver()
 
